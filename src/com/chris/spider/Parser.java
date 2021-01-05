@@ -2,8 +2,8 @@ package com.chris.spider;
 /****************************************************************************
  * <b>Title</b>: Parser.java
  * <b>Project</b>: WebSpider
- * <b>Description: </b> Class to parse lines and save website links but might 
- * not need it if I use the ReaderWriter.
+ * <b>Description: </b> The parser will use a buffer to read from the page and
+ * a buffer to write to a file for or save a link for the connection manager.
  * <b>Copyright:</b> Copyright (c) 2020
  * <b>Company:</b> Silicon Mountain Technologies
  * 
