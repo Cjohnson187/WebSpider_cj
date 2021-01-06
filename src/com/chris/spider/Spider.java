@@ -39,12 +39,17 @@ import java.io.*; // choose specific imports
 
 
 public class Spider {
-	private Socket socket;
-	private String socketAddress;
+	// https://christopherfjohnson.com/   going to test with my web site
+	
 	
 
 	
 	public static void main(String... args) {
+		// going to get url and port# from cmd
+		String hostName = args[0];                     
+		int portNumber = Integer.parseInt(args[1]);
+		
+		// do while link manger has new
 		
 		// make request to page   -- connect manager
 		// handle response

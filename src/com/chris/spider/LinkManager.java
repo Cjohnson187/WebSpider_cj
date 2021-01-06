@@ -1,6 +1,6 @@
 package com.chris.spider;
 
-
+import java.net.Socket;
 
 /****************************************************************************
  * <b>Title</b>: LinkManager.java
@@ -18,14 +18,20 @@ package com.chris.spider;
  ****************************************************************************/
 
 public class LinkManager {
-
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		System.out.println(" gog ");
-		
+	private Socket socket;
+	private String socketAddress;
+	
+	
+	LinkManager(String link) {
+		this.socketAddress = link;
 		
 	}
+	
+	private boolean hasNewLink() {
+		
+		
+		return false;
+	}
 
+	
 }
