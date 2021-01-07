@@ -1,6 +1,13 @@
+Site to test-
+	- https://christopherfjohnson.com/
+	- https://www.siliconmtn.com/
+
+
 links-
 	- list of HTTP header fields
 	https://en.wikipedia.org/wiki/List_of_HTTP_header_fields
 	- Oracle socket page
 	https://docs.oracle.com/javase/tutorial/networking/sockets/readingWriting.html
 	
+info- 
+	- use post for login not get
