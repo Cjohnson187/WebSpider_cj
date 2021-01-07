@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 
 import java.net.InetAddress;
 
@@ -34,9 +36,11 @@ public class Tester {
 		
 		
 		try {
-			InetAddress site = InetAddress.getByName("www.christopherfjohnson.com");
+			InetAddress site = InetAddress.getByName("www.siliconmtn.com");
 			System.out.println(site.getHostAddress());
-			Socket socket = new Socket(site.getHostAddress(), 443);
+			SSLSocketFactory factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
+			SSLSocket socket = (SSLSocket)factory.createSocket("www.siliconmtn.com", 443);
+			//Socket socket = new Socket(site.getHostAddress(), 443);
 			
 			sendCookie(socket);
 		} catch (Exception e) {
@@ -57,24 +61,28 @@ public class Tester {
 		//writer.write ("GET /index.html HTTP/1.0\n\n");
 		
 		
-
-		writer.println("GET / HTTP/1.1");
-        writer.println("User-Agent: Mozilla/4.0 (compatible; MSIE5.01; Windows NT)");
-        writer.println("Host: www.christopherfjohnson.com");
-        writer.println("Accept-Language: en-us");
-        writer.println("Accept-Encoding: gzip, deflate");
-        writer.println("Connection: Keep-Alive");
+		
+		
+		// use uri to get through a proxy
+		writer.println("GET https://www.siliconmtn.com/ HTTP/1.1");
+		writer.println("Host: www.siliconmtn.com");
+		//writer.println("GET /index.html HTTP/1.0");
+		//writer.println("Host: www.xyz.com");
+		//writer.println("Connection: Keep-Alive");
+		//writer.println("Accept: text/html, */*");
+		//writer.println("Accept-Language: us-en, fr, cn");
         writer.println();
         writer.flush();
-		//writer.println("Host: christopherfjohnson.com");
-		//writer.println("Content-Type text/html");
+
 		//writer.println(); //important
 		//send your body here
 		//writer.flush();//send message
 		String line = "";
 		while((line = reader.readLine()) != null) {
-			System.out.println(line);
+			System.out.println(line.toString());
 		}
+		reader.close();
+		writer.close();
 		System.out.println("outy 5000");
 		
 		
