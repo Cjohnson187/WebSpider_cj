@@ -64,8 +64,10 @@ public class Tester {
 		
 		
 		// use uri to get through a proxy
-		writer.println("POST http://www.siliconmtn.com/admintool HTTP/1.1");
+		writer.println("GET http://www.siliconmtn.com/admintool HTTP/1.1");
 		writer.println("Host: www.siliconmtn.com");
+		writer.println("username: ");
+		writer.println("password: ");
 		//writer.println("GET /index.html HTTP/1.0");
 		//writer.println("Host: www.xyz.com");
 		//writer.println("Connection: Keep-Alive");
