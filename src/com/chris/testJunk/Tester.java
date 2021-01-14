@@ -1,4 +1,4 @@
-package com.chris.spider;
+package com.chris.testJunk;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -64,7 +64,7 @@ public class Tester {
 		
 		
 		// use uri to get through a proxy
-		writer.println("GET https://www.siliconmtn.com/ HTTP/1.1");
+		writer.println("POST http://www.siliconmtn.com/admintool HTTP/1.1");
 		writer.println("Host: www.siliconmtn.com");
 		//writer.println("GET /index.html HTTP/1.0");
 		//writer.println("Host: www.xyz.com");

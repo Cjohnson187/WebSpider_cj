@@ -1,4 +1,4 @@
-package com.chris.spider;
+package com.chris.helper;
 
 
 /****************************************************************************
@@ -15,5 +15,30 @@ package com.chris.spider;
  * @updates:
  ****************************************************************************/
 public class ConnectionManager {
+
+    private static String url;
+    private static String cookie;
+    // input buffer
+    // output buffer
+
+
+    private ConnectionManager(String url){
+        this.url = url;
+    }
+
+    private static void makeRequest(){
+        // send request to page
+    }
+    public static void readResponse(String siteResponse){
+        // read response maybe
+    }
+
+    public static void saveCookie(String newCookie) {
+        cookie = newCookie;
+    }
+    public static String getCookie() {
+        return cookie;
+    }
+
 
 }

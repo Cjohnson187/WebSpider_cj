@@ -41,65 +41,16 @@ import java.io.*; // choose specific imports
 public class Spider {
 	// https://christopherfjohnson.com/   going to test with my web site
 	
-	
-
-	
-	public static void main(String... args) {
-		// going to get url and port# from cmd
-		String hostName = args[0];                     
-		int portNumber = Integer.parseInt(args[1]);
-		
-		// do while link manger has new
-		
-		// make request to page   -- connect manager
-		// handle response
-		//  	save cookie in hashmap key
-		//		save webpages in values for cookie
-		// make buffer for reading page 
-		// make buffer for writing page
-		// ~~ while the page is not null
-		// 		~ read char /write to file
-		// 		* if <a href> 
-		// 			save link / write to file
-		// check for new links in manager
-		// 		* yes- repeat
-		// 		* no- end
+	public static void connect(String site){
 
 	}
 	
+	public static void main(String... args) {
+		// get pafe 
+		// conect
+		// read
+	}
 	
 	
-	
-	
-	
-	
-	
-	/**
-	 * I was just using this mess to test URL.
-	 * @param args
-	 * @throws IOException
-	 */
-//	public static void main(String[] args) throws IOException {
-//		String cur = "homeSMT";
-//		OutputStream out = new FileOutputStream("files/"+cur+ ".txt"); 
-//		try {
-//			URL page = new URL("https://www.siliconmtn.com/");
-//			URLConnection ul = page.openConnection();
-//			BufferedReader in1  = new BufferedReader(new InputStreamReader(ul.getInputStream()));
-//			String inputLine;
-//			byte[] line;
-//			while ((inputLine = in1.readLine()) !=null) {
-//				line = inputLine.getBytes();
-//				out.write(line);
-//				System.out.println(inputLine);
-//			}
-//		
-//		} catch (MalformedURLException e) {
-//			System.out.println("Malformed url e- " + e);
-//			e.printStackTrace();
-//		}
-//		
-//		
-//	}
-	
+
 }
