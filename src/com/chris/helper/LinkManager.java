@@ -1,16 +1,9 @@
 package com.chris.helper;
 
-import java.net.Socket;
-import java.util.List;
-import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Queue;
 
 /****************************************************************************
  * <b>Title</b>: LinkManager.java
@@ -32,9 +25,6 @@ public class LinkManager {
 	private static Set<String> visited;
 	private static Queue<String> priority;
 
-	// I think i might keep this in the connection manager.
-	private static String jSessionID;
-	
 	/**
 	 * basic constructor
 	 */

@@ -37,10 +37,10 @@ public class Tester {
 		
 		try {
 			InetAddress site = InetAddress.getByName("www.siliconmtn.com");
-			System.out.println(site.getHostAddress());
+			System.out.println(site.getHostName());
 			SSLSocketFactory factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
-			SSLSocket socket = (SSLSocket)factory.createSocket("www.siliconmtn.com", 443);
-			//Socket socket = new Socket(site.getHostAddress(), 443);
+			//SSLSocket socket = (SSLSocket)factory.createSocket("www.siliconmtn.com", 443);
+			SSLSocket socket = (SSLSocket)factory.createSocket(site.getHostName(), 443);
 			
 			sendCookie(socket);
 		} catch (Exception e) {
@@ -64,8 +64,8 @@ public class Tester {
 		
 		
 		// use uri to get through a proxy
-		writer.println("GET http://www.siliconmtn.com/ HTTP/1.1");
-		//writer.println("Host: www.siliconmtn.com");
+		writer.println("GET http://www.siliconmtn.com HTTP/1.1");
+		writer.println("Host: www.siliconmtn.com");
 		//writer.println("username: ");
 		//writer.println("password: ");
 		//writer.println("GET /index.html HTTP/1.0");
