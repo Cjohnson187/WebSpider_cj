@@ -5,11 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-<<<<<<< Updated upstream
-import lib/jsoup-1.13.1.jar;
-
-=======
->>>>>>> Stashed changes
 import com.chris.helper.ConnectionManager;
 import com.chris.helper.LinkManager;
 
