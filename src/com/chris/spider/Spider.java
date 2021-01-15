@@ -5,6 +5,7 @@ import org.jsoup.nodes.Document;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,7 +37,8 @@ public class Spider {
 	/**
 	 * Hard coding the sites we need since we are only going to two main sites.
 	 */
-	private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com", "stage-st-stage.qa.siliconmtn.com"));
+	private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com"));
+	//private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com", "stage-st-stage.qa.siliconmtn.com"));
 	
 	private static LinkManager linkManager = new LinkManager();
 	
@@ -47,12 +49,14 @@ public class Spider {
 	 * @param linkMan
 	 * @throws IOException 
 	 */
-	public static void connect(LinkManager linkMan) {
-		
+	public static BufferedReader connect(LinkManager linkMan) {
 		ConnectionManager connectMan = new ConnectionManager();
-		while (linkMan.hasNew()){
-			connectMan.connectSocket(linkMan.getNextPage());
-		}
+			
+		//connect to page
+		connectMan.connectSocket(linkMan.getNextPage());
+		
+		// sent get request and make reader writer
+		return connectMan.sendGet();
 	}
 
 	/**
@@ -61,7 +65,8 @@ public class Spider {
 	 * @param reader
 	 */
 	public static void parse(BufferedReader reader) {
-
+		FileWriter writer;
+		
 	}
 	
 	/**
@@ -71,13 +76,19 @@ public class Spider {
 	 * @param args
 	 */
 	public static void main(String... args) {
-		System.out.println("some stuff isnt broken  1" );
+		System.out.println("Starting");
+		BufferedReader responseReader;
+		
 		// add base links to link manager
 		for (String site: sitesToSearch) {
 			linkManager.addLink(site);
 		}
+		
 
 		while(linkManager.hasNew()){
+			// get a buffered reader from the current a page get request
+			responseReader = connect(linkManager);
+			parse(responseReader);
 			// connect
 			// parse
 		}

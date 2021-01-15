@@ -64,21 +64,8 @@ public class ConnectionManager {
     /**
      * Making get request for the current page
      */
-    public void sendGet(){
+    public BufferedReader sendGet(){
         // basic post to get  HTML
-        socketWriter.println("GET http://" + address.getHostName() + " HTTP/1.1");
-        socketWriter.println("Host: " + address.getHostName());
-
-        // adding carraige return and sending
-        socketWriter.println();
-        socketWriter.flush();
-        // send request to page
-    }
-
-    /**
-     * Making post request for login on secure site
-     */
-    public BufferedReader sendPost(){
         socketWriter.println("GET http://" + address.getHostName() + " HTTP/1.1");
         socketWriter.println("Host: " + address.getHostName());
 
@@ -90,14 +77,58 @@ public class ConnectionManager {
         return socketReader;
     }
 
+    /**
+     * Making post request for login on secure site
+     */
+    public BufferedReader sendPost(){
+        socketWriter.println("POST http://" + address.getHostName() + " HTTP/1.1");
+        socketWriter.println("Host: " + address.getHostName());
+        
+        // if there is an existing jsessionID send it as well 
+        if (checkForCookie()) {
+        	//socket.writer
+        }
+
+        // adding carriage return and sending
+        socketWriter.println();
+        socketWriter.flush();
+        // send request to page
+        
+        return socketReader;
+    }
+    
+    
+
+    /**
+     * Method to read header
+     * @param siteResponse
+     */
     public static void readResponse(String siteResponse){
         // read response maybe
     }
+    
+    /**
+     * Method to check if we have an existing cookie.
+     * @return
+     */
+    private boolean checkForCookie() {
+        if (cookie != null) return true;  
+        return false;
+    }
 
+    /**
+     * saving cookie in connnectionManager
+     * @param newCookie
+     */
     public  void saveCookie(String newCookie) {
         this.cookie = newCookie;
     }
-    public String getCookie() {
+    
+    /**
+     * Getting Cookie for fiel writer.
+     * @return
+     */
+    private String getCookie() {
         return cookie;
     }
 

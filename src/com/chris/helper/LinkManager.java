@@ -45,9 +45,6 @@ public class LinkManager {
 		// initialize q and add starting site
 		priority = new PriorityQueue<String>();
 		priority.add(site);
-
-		 //  checking whats in the q
-		System.out.println(priority.toString()); 
 	}	
 
 	/**
