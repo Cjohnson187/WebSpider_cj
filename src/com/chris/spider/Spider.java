@@ -1,6 +1,11 @@
 package com.chris.spider;
 
+import org.jsoup.*;
+import org.jsoup.nodes.Document;
+
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -34,13 +39,16 @@ public class Spider {
 	private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com", "stage-st-stage.qa.siliconmtn.com"));
 	
 	private static LinkManager linkManager = new LinkManager();
+	
 	/**
 	 * Method to connect the page handle the response.
 	 * If the connection manager gets an ok response it will pass the bufferred reader 
 	 * to the parer to get more links for the link manager and write to a file.
 	 * @param linkMan
+	 * @throws IOException 
 	 */
-	public static void connect(LinkManager linkMan){
+	public static void connect(LinkManager linkMan) {
+		
 		ConnectionManager connectMan = new ConnectionManager();
 		while (linkMan.hasNew()){
 			connectMan.connectSocket(linkMan.getNextPage());
@@ -63,7 +71,7 @@ public class Spider {
 	 * @param args
 	 */
 	public static void main(String... args) {
-
+		System.out.println("some stuff isnt broken  1" );
 		// add base links to link manager
 		for (String site: sitesToSearch) {
 			linkManager.addLink(site);
