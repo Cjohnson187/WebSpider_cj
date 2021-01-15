@@ -1,31 +1,23 @@
 package com.chris.spider;
 
-import java.net.MalformedURLException;
-
-import java.net.Socket;
-
-import java.net.URL; // not using these
-import java.net.URLConnection; // not using these
+import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import lib/jsoup-1.13.1.jar;
+
+import com.chris.helper.ConnectionManager;
 import com.chris.helper.LinkManager;
-
-import java.io.*; // choose specific imports
-
-
 
 /****************************************************************************
  * <b>Title</b>: Spider.java
  * <b>Project</b>: WebSpider
- * <b>Description: </b> This is the main runner class for my web crawler,
- * It will use a connection manager, parser, and link manager. The Connection
- * Manager will make and handle responses to and from the web site. The 
- * Parser will make a buffer to read from the page and write to a file.
- * The link manager will accept links/cookies from the parser and connection 
- * manager. The process will continue until the link manager is out of new 
- * links.
+ * <b>Description: </b> This is the main runner for the Web Spider. It will have
+ * a list of base pages to read and hold other pages found in order. THe connection
+ * manager will connect to a given page and if the response is ok it will
+ * pass the buffered reader to the parser to write the page and the link manager 
+ * will save the read page and continue with the next new page.
  * <b>Copyright:</b> Copyright (c) 2020
  * <b>Company:</b> Silicon Mountain Technologies
  * 
@@ -37,26 +29,52 @@ import java.io.*; // choose specific imports
 
 
 public class Spider {
-	// https://christopherfjohnson.com/   going to test with my web site
-	private static List<String> sitesToSearch = new ArrayList<>(
-		Arrays.asList("https://www.siliconmtn.com/", "https://stage-st-stage.qa.siliconmtn.com/"));
+
+	/**
+	 * Hard coding the sites we need since we are only going to two main sites.
+	 */
+	private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com", "stage-st-stage.qa.siliconmtn.com"));
 	
-	public static void connect(String site){
+	private static LinkManager linkManager = new LinkManager();
+	/**
+	 * Method to connect the page handle the response.
+	 * If the connection manager gets an ok response it will pass the bufferred reader 
+	 * to the parer to get more links for the link manager and write to a file.
+	 * @param linkMan
+	 */
+	public static void connect(LinkManager linkMan){
+		ConnectionManager connectMan = new ConnectionManager();
+		while (linkMan.hasNew()){
+			connectMan.connectSocket(linkMan.getNextPage());
+		}
+	}
+
+	/**
+	 * The parse method will take a reader from the connection manager and read the body in order to 
+	 * get more links 
+	 * @param reader
+	 */
+	public static void parse(BufferedReader reader) {
 
 	}
 	
+	/**
+	 * Using each main link in the above class to build a link manger and crawl each seperately.
+	 * I will probably have an issue if eahc site refers to each other but im using a priority queu
+	 * so i could probably just add both to the same link mnanager and it wont matter since its sorted.
+	 * @param args
+	 */
 	public static void main(String... args) {
 
+		// add base links to link manager
 		for (String site: sitesToSearch) {
-			LinkManager mainPage = new LinkManager(site);
-			mainPage.getNextPage();
-			// connect
-			// read
+			linkManager.addLink(site);
 		}
 
-		// get page 
-		// connect
-		// read
-	}
+		while(linkManager.hasNew()){
+			// connect
+			// parse
+		}
 
+	}
 }
