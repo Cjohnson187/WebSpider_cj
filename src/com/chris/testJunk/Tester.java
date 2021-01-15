@@ -64,10 +64,10 @@ public class Tester {
 		
 		
 		// use uri to get through a proxy
-		writer.println("GET http://www.siliconmtn.com/admintool HTTP/1.1");
-		writer.println("Host: www.siliconmtn.com");
-		writer.println("username: ");
-		writer.println("password: ");
+		writer.println("GET http://www.siliconmtn.com/ HTTP/1.1");
+		//writer.println("Host: www.siliconmtn.com");
+		//writer.println("username: ");
+		//writer.println("password: ");
 		//writer.println("GET /index.html HTTP/1.0");
 		//writer.println("Host: www.xyz.com");
 		//writer.println("Connection: Keep-Alive");
@@ -81,6 +81,7 @@ public class Tester {
 		//writer.flush();//send message
 		String line = "";
 		while((line = reader.readLine()) != null) {
+			System.out.println("&&&&& a line printed &&&&&");
 			System.out.println(line.toString());
 		}
 		reader.close();

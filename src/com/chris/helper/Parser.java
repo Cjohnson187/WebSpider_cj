@@ -14,12 +14,19 @@ package com.chris.helper;
  ****************************************************************************/
 
 public class Parser {
+	// filewriter
+	// list of links
+	String fileName;
 
-	/**
-	 * 
-	 */
+
 	public Parser() {
+		
 		// TODO Auto-generated constructor stub
 	}
+	
 
+	// save link
+	// read page
+	// write to file
+	// return list
 }

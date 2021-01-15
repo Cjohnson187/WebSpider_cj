@@ -2,9 +2,10 @@ package com.chris.webPage;
     
 
 public class page {
-    private static String request;
-    private static String reposnse;
-    private static String url;
+
+    private static String baseUrl;
+    private static String jSessionID;
+    private String url;
     
     public page(String url){
         this.url = url;

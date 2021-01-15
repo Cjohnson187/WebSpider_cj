@@ -1,11 +1,16 @@
 package com.chris.spider;
 
-import java.net.MalformedURLException; 
+import java.net.MalformedURLException;
 
-import java.net.Socket; 
+import java.net.Socket;
 
 import java.net.URL; // not using these
 import java.net.URLConnection; // not using these
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import com.chris.helper.LinkManager;
 
 import java.io.*; // choose specific imports
 
@@ -31,26 +36,27 @@ import java.io.*; // choose specific imports
  ****************************************************************************/
 
 
-
-
-
-
-
-
-
 public class Spider {
 	// https://christopherfjohnson.com/   going to test with my web site
+	private static List<String> sitesToSearch = new ArrayList<>(
+		Arrays.asList("https://www.siliconmtn.com/", "https://stage-st-stage.qa.siliconmtn.com/"));
 	
 	public static void connect(String site){
 
 	}
 	
 	public static void main(String... args) {
-		// get pafe 
-		// conect
+
+		for (String site: sitesToSearch) {
+			LinkManager mainPage = new LinkManager(site);
+			mainPage.getNextPage();
+			// connect
+			// read
+		}
+
+		// get page 
+		// connect
 		// read
 	}
-	
-	
 
 }
