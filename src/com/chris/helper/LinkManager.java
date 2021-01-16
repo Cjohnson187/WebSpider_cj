@@ -23,7 +23,7 @@ import java.util.HashSet;
 public class LinkManager {
 
 	private static Set<String> visited;
-	private static Queue<String> priority;
+	private static Queue<String> priority;;
 
 	/**
 	 * basic constructor

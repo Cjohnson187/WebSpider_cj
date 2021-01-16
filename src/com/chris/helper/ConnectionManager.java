@@ -97,7 +97,34 @@ public class ConnectionManager {
         return socketReader;
     }
     
-    
+	/**
+	 * Getting the base url of the current page.
+	 * @return
+	 */
+	public String GetBaseURL() {
+		StringBuilder base = new StringBuilder();
+		String hostName="";
+		try {
+			hostName = address.getHostName();
+			for (int i=0; i< hostName.length(); i++) {
+				if (hostName.charAt(i) != '/') {
+					base.append(hostName.charAt(i));
+				} else break;
+			}
+			
+		} catch(NullPointerException e) {
+			System.out.println("Error getting base url. Nullpointer Exception -" + e);
+		}
+		
+		return hostName;
+	}
+	/**
+	 * getting the entire URL
+	 * @return
+	 */
+	public String GetURL() {
+		return address.getHostName();
+	}
 
     /**
      * Method to read header

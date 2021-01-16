@@ -33,13 +33,22 @@ import com.chris.helper.LinkManager;
 
 
 public class Spider {
-
+	
+	/**
+	 * configuration file directories / maybe login
+	 */
+	private static final File config= new File("config.properties");
+	
 	/**
 	 * Hard coding the sites we need since we are only going to two main sites.
 	 */
 	private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com"));
 	//private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com", "stage-st-stage.qa.siliconmtn.com"));
 	
+	
+	/**
+	 * Link Manager will handle 
+	 */
 	private static LinkManager linkManager = new LinkManager();
 	
 	/**
@@ -55,7 +64,7 @@ public class Spider {
 		//connect to page
 		connectMan.connectSocket(linkMan.getNextPage());
 		
-		// sent get request and make reader writer
+		// sent get request and returns a socket reader
 		return connectMan.sendGet();
 	}
 
@@ -65,7 +74,18 @@ public class Spider {
 	 * @param reader
 	 */
 	public static void parse(BufferedReader reader) {
+		//File out = new File(linkManager.get);
 		FileWriter writer;
+		String line = "";
+		try {
+			while((line = reader.readLine()) != null) {
+				System.out.println(line.toString());
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println("outy 5000");
 		
 	}
 	
@@ -86,7 +106,7 @@ public class Spider {
 		
 
 		while(linkManager.hasNew()){
-			// get a buffered reader from the current a page get request
+			// get a buffered reader from the current and page get request
 			responseReader = connect(linkManager);
 			parse(responseReader);
 			// connect
