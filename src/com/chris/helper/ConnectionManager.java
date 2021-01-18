@@ -1,10 +1,10 @@
 package com.chris.helper;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.InetAddress;
+
 import java.net.UnknownHostException;
 
 import javax.net.ssl.SSLSocket;
@@ -28,10 +28,6 @@ public class ConnectionManager {
     private static SSLSocket socket;
     private InetAddress address;
     private static PrintWriter socketWriter;
-    private static BufferedReader socketReader;
-
-    // input buffer
-    // output buffer
 
     /**
      * Empty constructor since the URL will most likely be changing a few times.
@@ -51,7 +47,6 @@ public class ConnectionManager {
 
             // Creating reader and writer.
             socketWriter = new PrintWriter(socket.getOutputStream());
-            socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (UnknownHostException e) {
             System.out.println("I pitty the fool who cant recognize a host, exception- " + e);
             e.printStackTrace();
@@ -64,37 +59,34 @@ public class ConnectionManager {
     /**
      * Making get request for the current page
      */
-    public BufferedReader sendGet(){
+    public void sendGet(){
         // basic post to get  HTML
         socketWriter.println("GET http://" + address.getHostName() + " HTTP/1.1");
         socketWriter.println("Host: " + address.getHostName());
 
-        // adding carraige return and sending
+        // adding carriage return and sending
         socketWriter.println();
+        // send request
         socketWriter.flush();
-        // send request to page
-        
-        return socketReader;
     }
 
     /**
      * Making post request for login on secure site
      */
-    public BufferedReader sendPost(){
+    public void sendPost(){
         socketWriter.println("POST http://" + address.getHostName() + " HTTP/1.1");
         socketWriter.println("Host: " + address.getHostName());
         
         // if there is an existing jsessionID send it as well 
         if (checkForCookie()) {
-        	//socket.writer
+        	
+        	//write cookie
         }
-
+        
         // adding carriage return and sending
         socketWriter.println();
-        socketWriter.flush();
         // send request to page
-        
-        return socketReader;
+        socketWriter.flush();     
     }
     
 	/**
@@ -118,6 +110,15 @@ public class ConnectionManager {
 		
 		return hostName;
 	}
+	
+	/**
+	 * Method to make an input stream for the parser.
+	 * @return
+	 * @throws IOException
+	 */
+	public InputStream getStream() throws IOException {
+		return socket.getInputStream();
+	}
 	/**
 	 * getting the entire URL
 	 * @return
@@ -125,15 +126,7 @@ public class ConnectionManager {
 	public String GetURL() {
 		return address.getHostName();
 	}
-
-    /**
-     * Method to read header
-     * @param siteResponse
-     */
-    public static void readResponse(String siteResponse){
-        // read response maybe
-    }
-    
+ 
     /**
      * Method to check if we have an existing cookie.
      * @return
@@ -147,17 +140,18 @@ public class ConnectionManager {
      * saving cookie in connnectionManager
      * @param newCookie
      */
-    public  void saveCookie(String newCookie) {
+    public void saveCookie(String newCookie) {
         this.cookie = newCookie;
     }
     
     /**
-     * Getting Cookie for fiel writer.
+     * Getting Cookie for file writer.
      * @return
      */
-    private String getCookie() {
+    public String getCookie() {
         return cookie;
     }
+    
 
     // Close readers G*$#@M%&*!!!!!
 

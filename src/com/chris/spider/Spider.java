@@ -7,12 +7,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import com.chris.helper.ConnectionManager;
 import com.chris.helper.LinkManager;
+import com.chris.helper.Parser;
 
 /****************************************************************************
  * <b>Title</b>: Spider.java
@@ -34,22 +36,13 @@ import com.chris.helper.LinkManager;
 
 public class Spider {
 	
-	/**
-	 * configuration file directories / maybe login
-	 */
 	private static final File config= new File("config.properties");
-	
-	/**
-	 * Hard coding the sites we need since we are only going to two main sites.
-	 */
-	private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com"));
+
+	private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.christopherfjohnson.com"));
 	//private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com", "stage-st-stage.qa.siliconmtn.com"));
 	
-	
-	/**
-	 * Link Manager will handle 
-	 */
 	private static LinkManager linkManager = new LinkManager();
+	private static ConnectionManager connectMan = new ConnectionManager();
 	
 	/**
 	 * Method to connect the page handle the response.
@@ -58,37 +51,15 @@ public class Spider {
 	 * @param linkMan
 	 * @throws IOException 
 	 */
-	public static BufferedReader connect(LinkManager linkMan) {
-		ConnectionManager connectMan = new ConnectionManager();
-			
+	public static void connect(LinkManager linkMan) {
+		connectMan = new ConnectionManager();
 		//connect to page
+		System.out.println("Getting next page.");
 		connectMan.connectSocket(linkMan.getNextPage());
 		
-		// sent get request and returns a socket reader
-		return connectMan.sendGet();
+
 	}
 
-	/**
-	 * The parse method will take a reader from the connection manager and read the body in order to 
-	 * get more links 
-	 * @param reader
-	 */
-	public static void parse(BufferedReader reader) {
-		//File out = new File(linkManager.get);
-		FileWriter writer;
-		String line = "";
-		try {
-			while((line = reader.readLine()) != null) {
-				System.out.println(line.toString());
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		System.out.println("outy 5000");
-		
-	}
-	
 	/**
 	 * Using each main link in the above class to build a link manger and crawl each seperately.
 	 * I will probably have an issue if eahc site refers to each other but im using a priority queu
@@ -96,22 +67,47 @@ public class Spider {
 	 * @param args
 	 */
 	public static void main(String... args) {
-		System.out.println("Starting");
-		BufferedReader responseReader;
+		System.out.println("Web Spider starting.");
 		
 		// add base links to link manager
 		for (String site: sitesToSearch) {
+			System.out.println("Adding pages to Link Manager.");
 			linkManager.addLink(site);
 		}
 		
-
+		// Start Crawling
+		
+		urlCrawl();		
+	}
+	
+	public static void urlCrawl() {
+		System.out.println("Starting page crawl.");
 		while(linkManager.hasNew()){
 			// get a buffered reader from the current and page get request
-			responseReader = connect(linkManager);
-			parse(responseReader);
-			// connect
-			// parse
+			connect(linkManager);
+			System.out.println("Connecting link manager.");
+			
+			//Parser parser = new Parser(linkManager.getURI());
+			
+			
+			// parse the current page
+			try {
+				BufferedReader reader = new BufferedReader(new InputStreamReader(connectMan.getStream()));
+				String line = "";
+				while((line = reader.readLine()) != null) {
+					System.out.println("&&&&& a line printed &&&&&");
+					System.out.println(line.toString());
+				}
+				System.out.println("Starting page parse.");
+				//parser.readPage(connectMan.getStream());
+			} catch (IOException e) {
+				System.out.println("Could bot get inputStream from socket, exception - " + e);
+				e.printStackTrace();
+			}
+			
+			
 		}
 
+	
 	}
 }

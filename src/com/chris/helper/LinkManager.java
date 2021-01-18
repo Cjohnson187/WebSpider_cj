@@ -23,7 +23,8 @@ import java.util.HashSet;
 public class LinkManager {
 
 	private static Set<String> visited;
-	private static Queue<String> priority;;
+	private static Queue<String> priority;
+	private static String currentPage;
 
 	/**
 	 * basic constructor
@@ -57,6 +58,11 @@ public class LinkManager {
 			priority.add(link);
 		}
 	}
+	
+	public String getURI() {
+		String name = currentPage;
+		return name;
+	}
 
 	/**
 	 * Getting next page in queu and adding it to the set of pages visited.
@@ -66,6 +72,7 @@ public class LinkManager {
 	public String getNextPage() {
 		try {
 			visited.add(priority.peek());
+			currentPage = priority.peek();
 			return priority.poll();
 		}
 		catch(Exception e){
