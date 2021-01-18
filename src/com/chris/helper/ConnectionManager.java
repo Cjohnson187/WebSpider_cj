@@ -1,14 +1,22 @@
 package com.chris.helper;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
-
+import java.net.Socket;
 import java.net.UnknownHostException;
 
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
 /****************************************************************************
  * <b>Title</b>: ConnectionManager.java <b>Project</b>: WebSpider
@@ -25,24 +33,42 @@ import javax.net.ssl.SSLSocketFactory;
 public class ConnectionManager {
 
     private String cookie;
+    private String link;
     private static SSLSocket socket;
     private InetAddress address;
     private static PrintWriter socketWriter;
+    private static BufferedReader socketReader;
+    private Document page;
+    
+    private final String fileDir = "files/";
+	private String fileName;
+    
 
     /**
      * Empty constructor since the URL will most likely be changing a few times.
      */
-    public ConnectionManager() {
+    public ConnectionManager(String link) {
+    	this.link = link;
+    	System.out.println(link + "$$$$$$$$$$$$$$$$$$$$$$$$$$4");
+    }
+    
+    
+    public String getPage() {
+    	connectSocket();
+    	sendGet();
+    	savePage();
+    	return getPageName();
     }
 
     /**
      * Make connection to page and build writer / reader
      */
-    public void connectSocket(String link) {
+    private void connectSocket() {
         SSLSocketFactory factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
         try {
             // Using InetAdress to make socket because its safer than using my parsed strings
             address = InetAddress.getByName(link);
+            System.out.println(address.getHostName());
             socket = (SSLSocket) factory.createSocket(address.getHostName(), 443);
 
             // Creating reader and writer.
@@ -59,7 +85,7 @@ public class ConnectionManager {
     /**
      * Making get request for the current page
      */
-    public void sendGet(){
+    private void sendGet(){
         // basic post to get  HTML
         socketWriter.println("GET http://" + address.getHostName() + " HTTP/1.1");
         socketWriter.println("Host: " + address.getHostName());
@@ -68,20 +94,15 @@ public class ConnectionManager {
         socketWriter.println();
         // send request
         socketWriter.flush();
+        
     }
-
+    
     /**
      * Making post request for login on secure site
      */
-    public void sendPost(){
+    private void sendPost(){
         socketWriter.println("POST http://" + address.getHostName() + " HTTP/1.1");
         socketWriter.println("Host: " + address.getHostName());
-        
-        // if there is an existing jsessionID send it as well 
-        if (checkForCookie()) {
-        	
-        	//write cookie
-        }
         
         // adding carriage return and sending
         socketWriter.println();
@@ -111,20 +132,66 @@ public class ConnectionManager {
 		return hostName;
 	}
 	
+	public void savePage() {
+		File file = new File(fileDir+ getPageName());
+		
+		String line="";
+		try (BufferedWriter out = new BufferedWriter(new FileWriter(file));){
+			socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			
+			
+			while((line= socketReader.readLine()) != null) {
+				out.write(line);
+				System.out.println(line);
+			}
+			
+			socketReader.close();
+			socketWriter.close();
+			System.out.println("*************************************************");
+			
+		} catch (IOException e) {
+			System.out.println("Error reading from socket input stream, exception - " + e);
+			e.printStackTrace();
+		}
+	}
+	
 	/**
 	 * Method to make an input stream for the parser.
 	 * @return
 	 * @throws IOException
 	 */
-	public InputStream getStream() throws IOException {
-		return socket.getInputStream();
+	public Document getDoc(String uri) {
+			System.out.println("Making a document");
+			// making a page from the input stream to parse
+			String line = "";
+			
+			try {
+				BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+				System.out.println(uri);
+				page = Jsoup.parse(socket.getInputStream(), "ISO-8859-1", "https://"+uri);
+				System.out.println("jsoup is taking forever");
+				while((line = reader.readLine()) != null) {
+					System.out.println("&&&&& a line printed &&&&&");
+					System.out.println(line.toString());
+				}
+			} catch (IOException e) {
+				System.out.println("exception e- " +e);
+				e.printStackTrace();
+			}
+			
+		return page;
 	}
+	
 	/**
 	 * getting the entire URL
 	 * @return
 	 */
 	public String GetURL() {
 		return address.getHostName();
+	}
+	
+	private String getPageName() {
+		return address.getHostName().replaceAll("/", "_").replaceAll(":", "-");
 	}
  
     /**
@@ -152,8 +219,6 @@ public class ConnectionManager {
         return cookie;
     }
     
-
     // Close readers G*$#@M%&*!!!!!
-
 
 }

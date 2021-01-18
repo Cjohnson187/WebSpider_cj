@@ -7,10 +7,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.net.ssl.SSLSocket;
 
 import com.chris.helper.ConnectionManager;
 import com.chris.helper.LinkManager;
@@ -38,26 +42,25 @@ public class Spider {
 	
 	private static final File config= new File("config.properties");
 
-	private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.christopherfjohnson.com"));
+	private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com"));
 	//private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com", "stage-st-stage.qa.siliconmtn.com"));
 	
-	private static LinkManager linkManager = new LinkManager();
-	private static ConnectionManager connectMan = new ConnectionManager();
+	private static LinkManager linkManager;
+	private static ConnectionManager connectMan;
 	
 	/**
 	 * Method to connect the page handle the response.
 	 * If the connection manager gets an ok response it will pass the bufferred reader 
 	 * to the parer to get more links for the link manager and write to a file.
 	 * @param linkMan
+	 * @return 
+	 * @return 
 	 * @throws IOException 
 	 */
-	public static void connect(LinkManager linkMan) {
-		connectMan = new ConnectionManager();
+	public static String connectPage() throws IOException {
+		connectMan = new ConnectionManager(linkManager.getNextPage());
 		//connect to page
-		System.out.println("Getting next page.");
-		connectMan.connectSocket(linkMan.getNextPage());
-		
-
+		return connectMan.getPage();
 	}
 
 	/**
@@ -67,43 +70,31 @@ public class Spider {
 	 * @param args
 	 */
 	public static void main(String... args) {
+		
 		System.out.println("Web Spider starting.");
 		
+		linkManager = new LinkManager();
 		// add base links to link manager
-		for (String site: sitesToSearch) {
-			System.out.println("Adding pages to Link Manager.");
-			linkManager.addLink(site);
-		}
+		linkManager.addLink(sitesToSearch);	
 		
 		// Start Crawling
-		
 		urlCrawl();		
 	}
 	
 	public static void urlCrawl() {
-		System.out.println("Starting page crawl.");
+		
 		while(linkManager.hasNew()){
 			// get a buffered reader from the current and page get request
-			connect(linkManager);
 			System.out.println("Connecting link manager.");
-			
-			//Parser parser = new Parser(linkManager.getURI());
-			
-			
-			// parse the current page
 			try {
-				BufferedReader reader = new BufferedReader(new InputStreamReader(connectMan.getStream()));
-				String line = "";
-				while((line = reader.readLine()) != null) {
-					System.out.println("&&&&& a line printed &&&&&");
-					System.out.println(line.toString());
-				}
-				System.out.println("Starting page parse.");
-				//parser.readPage(connectMan.getStream());
+				Parser parser = new Parser(connectPage());
+				parser.parsePage();
 			} catch (IOException e) {
-				System.out.println("Could bot get inputStream from socket, exception - " + e);
+				System.out.println("Failed to connect to web page, exception - " + e);
 				e.printStackTrace();
 			}
+
+
 			
 			
 		}

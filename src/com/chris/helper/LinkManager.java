@@ -4,6 +4,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.List;
 
 /****************************************************************************
  * <b>Title</b>: LinkManager.java
@@ -52,28 +53,30 @@ public class LinkManager {
 	 * Add to q if not in set that stores visited sites
 	 * @param link
 	 */
-	public void addLink(String link) {
-		// add link ot q if not in set that indicates sites visited
-		if(!visited.contains(link) && !priority.contains(link)) {
-			priority.add(link);
+	public void addLink(List<String> links) {
+		for (String link: links) {
+			// add link to q if not in set that indicates sites visited
+			if(!visited.contains(link) && !priority.contains(link)) {
+				priority.add(link);
+			}
+
 		}
 	}
 	
 	public String getURI() {
-		String name = currentPage;
-		return name;
+		return currentPage;
 	}
 
 	/**
 	 * Getting next page in queu and adding it to the set of pages visited.
-	 *  
+	 * 
 	 * Problably shouldnt be returning null though ****
 	 */
 	public String getNextPage() {
 		try {
-			visited.add(priority.peek());
-			currentPage = priority.peek();
-			return priority.poll();
+			currentPage = priority.poll();
+			visited.add(currentPage);
+			return currentPage;
 		}
 		catch(Exception e){
 			System.out.println("Error getting next page, " + e + "occurred");

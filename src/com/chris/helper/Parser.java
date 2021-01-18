@@ -3,6 +3,8 @@ package com.chris.helper;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.net.ssl.SSLSocket;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -10,6 +12,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.Socket;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -31,55 +34,51 @@ import org.jsoup.select.Elements;
  ****************************************************************************/
 
 public class Parser {
-	private String fileName;
-	private Document page;
+	
+	private final String fileDir = "files/";
+	private String filePath;
+	private String pageUri;
+	File file;
+	
 	private String baseUri;
 	private Elements linksFound;
 	private String cookie;
+	private InputStreamReader input;
+	private List links;
 
 
-	/**
-	 * Empty constructor
-	 */
-	public Parser(String uri) {
-		baseUri = uri;
-		fileName = uri.replaceAll("/", "_").replaceAll(":", "-");
-	}
 	
 	/**
-	 * Look for cookie and in document.
-	 * @param doc
+	 * Making a parser with a socket and string for the page URI
+	 * @param uri
+	 * @param socket
 	 */
-	private void checkForCookie(Document doc) {
-	
+	public Parser(String pageName) {
+		links = new ArrayList<String>();
+		pageUri = pageName;
+		file = new File(fileDir+ pageName);
 	}
 	
 	/**
 	 * Parse the goiven input stream from a page.
 	 * @param socketStream
+	 * @throws IOException 
 	 */
-	public void readPage(InputStream socketStream) {
-		// Make buffered writer with fileName.
-		System.out.println("filename");
-		try (BufferedWriter out = new BufferedWriter(new FileWriter("files/"+fileName))){
-			System.out.println("Starting document");
-			page = Jsoup.parse(socketStream, "UTF-8", baseUri);
-			// Parse links with Jsoup
-			System.out.println("Getting links from document.");
-			linksFound = page.select("a[href]");
+	public void parsePage() throws IOException {
+		Document doc = Jsoup.parse(file, "UTF-8", pageUri);
+		Elements links = doc.select("a[href]");
+		for(Element link: links) {
+			System.out.println("link + " + link);
 			
-			//TODO check for cookie
-			
-			// write to page from Jsoup document.
-			System.out.println("Starting to write from document.");
-			out.write(page.body().text());
-			out.close();
-			System.out.println("links found =  " + linksFound.toString());
-			
-		} catch (IOException e) {
-			System.out.println("Could not read line, exception - " + e);
-			e.printStackTrace();
 		}
+		
+
+		
+		// Make buffered writer with fileName.
 	}
+
+
+
+	
 	
 }
