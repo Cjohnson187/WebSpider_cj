@@ -36,17 +36,9 @@ import org.jsoup.select.Elements;
 public class Parser {
 	
 	private final String fileDir = "files/";
-	private String filePath;
 	private String pageUri;
-	File file;
-	
-	private String baseUri;
-	private Elements linksFound;
-	private String cookie;
-	private InputStreamReader input;
-	private List links;
-
-
+	private File file;
+	private List<String> linksToReturn;
 	
 	/**
 	 * Making a parser with a socket and string for the page URI
@@ -54,27 +46,57 @@ public class Parser {
 	 * @param socket
 	 */
 	public Parser(String pageName) {
-		links = new ArrayList<String>();
+		linksToReturn = new ArrayList<String>();
 		pageUri = pageName;
 		file = new File(fileDir+ pageName);
 	}
 	
 	/**
-	 * Parse the goiven input stream from a page.
+	 * Return links found by the parser.
+	 * @return
+	 */
+	public List<String> getLinksFound(){
+		return linksToReturn;
+	}
+	
+	/**
+	 * Parse the text file for the current site.
 	 * @param socketStream
 	 * @throws IOException 
 	 */
 	public void parsePage() throws IOException {
 		Document doc = Jsoup.parse(file, "UTF-8", pageUri);
 		Elements links = doc.select("a[href]");
+		String linkFound = "";
 		for(Element link: links) {
-			System.out.println("link + " + link);
-			
+			linkFound = extractLink(link.toString());
+			if(linkFound.length() > 1 && linkFound.charAt(0) == '/') {
+				linksToReturn.add(pageUri + linkFound);
+			}
+		}
+	}
+	
+	/**
+	 * Get substring that is 
+	 * @param line
+	 * @return
+	 */
+	public String extractLink(String line) {
+		StringBuilder linkFound = new StringBuilder();
+		boolean link = false;
+		for(int i=0; i< line.length(); i++) {
+			if(line.charAt(i) == '"' && link == false) {
+				link = true;
+				continue;
+			} else if(line.charAt(i) == '"' && link == true) {
+				break;
+			}
+			if (link == true) {
+				linkFound.append(line.charAt(i));
+			}
 		}
 		
-
-		
-		// Make buffered writer with fileName.
+		return linkFound.toString();
 	}
 
 

@@ -1,20 +1,11 @@
 package com.chris.spider;
 
-import org.jsoup.*;
-import org.jsoup.nodes.Document;
-
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.Socket;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import javax.net.ssl.SSLSocket;
 
 import com.chris.helper.ConnectionManager;
 import com.chris.helper.LinkManager;
@@ -40,7 +31,7 @@ import com.chris.helper.Parser;
 
 public class Spider {
 	
-	private static final File config= new File("config.properties");
+	private static final File config= new File("config/config.properties");
 
 	private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com"));
 	//private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com", "stage-st-stage.qa.siliconmtn.com"));
@@ -48,20 +39,36 @@ public class Spider {
 	private static LinkManager linkManager;
 	private static ConnectionManager connectMan;
 	
+
 	/**
-	 * Method to connect the page handle the response.
-	 * If the connection manager gets an ok response it will pass the bufferred reader 
-	 * to the parer to get more links for the link manager and write to a file.
-	 * @param linkMan
-	 * @return 
-	 * @return 
-	 * @throws IOException 
+	 * Connecting to the page and saving the response to a text file.
+	 * @return
+	 * @throws IOException
 	 */
 	public static String connectPage() throws IOException {
 		connectMan = new ConnectionManager(linkManager.getNextPage());
-		//connect to page
 		return connectMan.getPage();
 	}
+	
+	/**
+	 * Crawling URLs from the link manager.
+	 */
+	public static void urlCrawl() {
+		while(linkManager.hasNew()){
+			try {
+				System.out.println("Getting next page.");
+				Parser parser = new Parser(connectPage());
+				parser.parsePage();
+				if(parser.getLinksFound() != null) {
+					linkManager.addLink(parser.getLinksFound());
+				}
+			} catch (IOException e) {
+				System.out.println("Failed to connect to web page, exception - " + e);
+				e.printStackTrace();
+			}
+		}
+	}
+
 
 	/**
 	 * Using each main link in the above class to build a link manger and crawl each seperately.
@@ -70,35 +77,15 @@ public class Spider {
 	 * @param args
 	 */
 	public static void main(String... args) {
-		
-		System.out.println("Web Spider starting.");
-		
 		linkManager = new LinkManager();
+		
 		// add base links to link manager
 		linkManager.addLink(sitesToSearch);	
 		
-		// Start Crawling
+		System.out.println("Web Spider crawling unsecured pages.");
 		urlCrawl();		
 	}
 	
-	public static void urlCrawl() {
-		
-		while(linkManager.hasNew()){
-			// get a buffered reader from the current and page get request
-			System.out.println("Connecting link manager.");
-			try {
-				Parser parser = new Parser(connectPage());
-				parser.parsePage();
-			} catch (IOException e) {
-				System.out.println("Failed to connect to web page, exception - " + e);
-				e.printStackTrace();
-			}
-
-
-			
-			
-		}
-
 	
-	}
+	
 }
