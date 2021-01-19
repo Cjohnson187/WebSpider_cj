@@ -10,7 +10,7 @@ import java.util.List;
  * <b>Title</b>: LinkManager.java
  * <b>Project</b>: WebSpider
  * <b>Description: </b> The Link manager class is going to receive links and
- * save them in the spider's desired format. It will also check for new links 
+ * save them for the  spider. It will also check for new links 
  * and send the new ones to the spider.
  * <b>Copyright:</b> Copyright (c) 2021
  * <b>Company:</b> Silicon Mountain Technologies
@@ -48,9 +48,9 @@ public class LinkManager {
 		priority = new PriorityQueue<String>();
 		priority.add(site);
 	}	
-
+	
 	/**
-	 * Add to q if not in set that stores visited sites
+	 * Add a list of links to q if not in set that stores visited sites
 	 * @param link
 	 */
 	public void addLink(List<String> links) {
@@ -59,18 +59,32 @@ public class LinkManager {
 			if(!visited.contains(link) && !priority.contains(link)) {
 				priority.add(link);
 			}
+		}
+	}
 
+	/**
+	 * Add to q if not in set that stores visited sites
+	 * @param link
+	 */
+	public void addLink(List<String> links, String baseUrl) {
+		for (String link: links) {
+			// add link to q if not in set that indicates sites visited
+			if(!visited.contains(link) && !priority.contains(link)) {
+				priority.add(link);
+			}
 		}
 	}
 	
+	/**
+	 * Get the current page
+	 * @return
+	 */
 	public String getURI() {
 		return currentPage;
 	}
 
 	/**
 	 * Getting next page in queu and adding it to the set of pages visited.
-	 * 
-	 * Problably shouldnt be returning null though ****
 	 */
 	public String getNextPage() {
 		try {

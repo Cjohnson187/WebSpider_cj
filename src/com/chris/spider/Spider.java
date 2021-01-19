@@ -24,13 +24,13 @@ import com.chris.helper.Parser;
  * 
  * @author Chris Johnson
  * @version 1.0
- * @since Dec 21, 2020
+ * @since Jan 5, 2021
  * @updates:
  ****************************************************************************/
 
 
 public class Spider {
-	
+	// was going to use a config gile
 	private static final File config= new File("config/config.properties");
 
 	private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com"));
@@ -39,51 +39,44 @@ public class Spider {
 	private static LinkManager linkManager;
 	private static ConnectionManager connectMan;
 	
-
 	/**
-	 * Connecting to the page and saving the response to a text file.
-	 * @return
-	 * @throws IOException
+	 * Send post to body with login /cookie to parse pages.
 	 */
-	public static String connectPage() throws IOException {
-		connectMan = new ConnectionManager(linkManager.getNextPage());
-		return connectMan.getPage();
+	public static void SecurePageCrawl() {
+		
 	}
 	
 	/**
-	 * Crawling URLs from the link manager.
+	 * Crawling unsecured URLs from the link manager.
 	 */
-	public static void urlCrawl() {
+	public static void urlCrawl() throws IOException {
+		
 		while(linkManager.hasNew()){
-			try {
-				System.out.println("Getting next page.");
-				Parser parser = new Parser(connectPage());
-				parser.parsePage();
-				if(parser.getLinksFound() != null) {
-					linkManager.addLink(parser.getLinksFound());
-				}
-			} catch (IOException e) {
-				System.out.println("Failed to connect to web page, exception - " + e);
-				e.printStackTrace();
+			connectMan = new ConnectionManager(linkManager.getNextPage());
+			Parser parser = new Parser(connectMan.getPage(), connectMan.GetBaseURL());
+			parser.parsePage();
+			
+			if(parser.getLinksFound() != null) {
+				linkManager.addLink(parser.getLinksFound(), connectMan.GetBaseURL());
 			}
 		}
 	}
 
 
 	/**
-	 * Using each main link in the above class to build a link manger and crawl each seperately.
-	 * I will probably have an issue if eahc site refers to each other but im using a priority queu
-	 * so i could probably just add both to the same link mnanager and it wont matter since its sorted.
+	 * The main will be used to add the initial links and crawl the 
+	 * regular pages and the secure pages.
 	 * @param args
+	 * @throws IOException 
 	 */
-	public static void main(String... args) {
+	public static void main(String... args) throws IOException {
 		linkManager = new LinkManager();
 		
 		// add base links to link manager
 		linkManager.addLink(sitesToSearch);	
 		
-		System.out.println("Web Spider crawling unsecured pages.");
-		urlCrawl();		
+		urlCrawl();
+	
 	}
 	
 	

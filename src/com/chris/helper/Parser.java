@@ -3,16 +3,8 @@ package com.chris.helper;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.net.ssl.SSLSocket;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.Socket;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -22,20 +14,19 @@ import org.jsoup.select.Elements;
 /****************************************************************************
  * <b>Title</b>: Parser.java
  * <b>Project</b>: WebSpider
- * <b>Description: </b> The parser will use a buffer to read from the page and
- * a buffer to write to a file for or save a link for the connection manager.
+ * <b>Description: </b> The parser will recieve a file from the connection
+ * manager and return a list of links found.
  * <b>Copyright:</b> Copyright (c) 2020
  * <b>Company:</b> Silicon Mountain Technologies
  * 
  * @author Chris Johnson
  * @version 1.0
- * @since Dec 21, 2020
+ * @since Jan 5, 2021
  * @updates:
  ****************************************************************************/
 
 public class Parser {
 	
-	private final String fileDir = "files/";
 	private String pageUri;
 	private File file;
 	private List<String> linksToReturn;
@@ -45,10 +36,10 @@ public class Parser {
 	 * @param uri
 	 * @param socket
 	 */
-	public Parser(String pageName) {
+	public Parser(File file, String pageUri) {
 		linksToReturn = new ArrayList<String>();
-		pageUri = pageName;
-		file = new File(fileDir+ pageName);
+		this.file = file;
+		this.pageUri = pageUri;
 	}
 	
 	/**
@@ -68,10 +59,11 @@ public class Parser {
 		Document doc = Jsoup.parse(file, "UTF-8", pageUri);
 		Elements links = doc.select("a[href]");
 		String linkFound = "";
+		
 		for(Element link: links) {
 			linkFound = extractLink(link.toString());
 			if(linkFound.length() > 1 && linkFound.charAt(0) == '/') {
-				linksToReturn.add(pageUri + linkFound);
+				linksToReturn.add(GetBaseURL() + linkFound);
 			}
 		}
 	}
@@ -95,9 +87,27 @@ public class Parser {
 				linkFound.append(line.charAt(i));
 			}
 		}
-		
 		return linkFound.toString();
 	}
+	
+	/**
+	 * Getting the base url of the current page.
+	 * @return
+	 */
+    private String GetBaseURL() {
+		StringBuilder base = new StringBuilder();
+		try {
+			for (int i=0; i< pageUri.length(); i++) {
+				if (pageUri.charAt(i) != '/') {
+					base.append(pageUri.charAt(i));
+				} else break;
+			}
+		} catch(NullPointerException e) {
+			System.out.println("Error getting base url. Nullpointer Exception -" + e);
+		}
+		return base.toString();
+	}
+
 
 
 
