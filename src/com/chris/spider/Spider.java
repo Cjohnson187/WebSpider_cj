@@ -34,7 +34,13 @@ public class Spider {
 	private static final File config= new File("config/config.properties");
 
 	private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com"));
-	//private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com", "stage-st-stage.qa.siliconmtn.com"));
+	//private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com", "stage-st-stage.qa.siliconmtn.com/admintool"));
+	private static List<String> adminToolSitesToSearch = new ArrayList<>(Arrays.asList("https://stage-st-stage.qa.siliconmtn.com/admintool", 
+			"https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=index&actionId=FLUSH_CACHE", 
+			"https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=stats&actionId=FLUSH_CACHE", 
+			"https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=index&actionId=SCHEDULE_JOB_INSTANCE&organizationId=SMT_TEST", 
+			"https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=index&actionId=WEB_SOCKET&organizationId=SMT_TEST",
+			"https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=index&actionId=ERROR_LOG&organizationId=SMT_TEST"));																					
 	
 	private static LinkManager linkManager;
 	private static ConnectionManager connectMan;
@@ -70,6 +76,8 @@ public class Spider {
 	 * @throws IOException 
 	 */
 	public static void main(String... args) throws IOException {
+		String s = "https://stage-st-stage.qa.siliconmtn.com/admintool?User=Chris.johnson%40siliconmtn.com&pw=1040SMTdisco%24&Content-Length=70";
+		System.out.println(s.length());
 		linkManager = new LinkManager();
 		
 		// add base links to link manager

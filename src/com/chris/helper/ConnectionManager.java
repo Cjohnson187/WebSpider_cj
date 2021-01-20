@@ -104,8 +104,10 @@ public class ConnectionManager {
 	        socketWriter.println("POST http://" + address.getHostName() + " HTTP/1.1");
 	        socketWriter.println("Host: " + address.getHostName());
 	        
-	        socketWriter.println(""); // credentials needed
-	        socketWriter.println(""); // length of message needed
+	        socketWriter.println("User=blah+blah&pw=123456&action=login"); // credentials needed
+	        socketWriter.println("Content-Length: 37"); // length of message needed
+	        socketWriter.println("Connection: Keep-Alive");
+	        socketWriter.println("Cache-Control: no-cache");
 	        // adding carriage return and sending
 	        socketWriter.println();
 	        // send request to page
