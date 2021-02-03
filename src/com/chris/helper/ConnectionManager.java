@@ -56,6 +56,12 @@ public class ConnectionManager {
     	savePage();
     	return file;
     }
+    
+    public File getSecurePage() {
+    	connectSocket();
+    	sendPost();
+    	return file;
+    }
 
     /**
      * Make connection to page and build writer / reader
@@ -101,9 +107,13 @@ public class ConnectionManager {
      */
     private void sendPost(){
 		try (PrintWriter socketWriter = new PrintWriter(socket.getOutputStream())){
-	        socketWriter.println("POST http://" + address.getHostName() + " HTTP/1.1");
-	        socketWriter.println("Host: " + address.getHostName());
-	        
+			//https://www.siliconmtn.com/admintool?emailAddress=chris.johnson%40siliconmtn.com&password=1040SMTdisco%23&l
+			System.out.println("address get host name" + address.getHostName());
+	        socketWriter.print("POST http://" + address.getHostName() + " HTTP/1.1");
+	        socketWriter.print("Host: " + address.getHostName());
+	        socketWriter.print("requestType=reqBuild&"); // credentials needed
+	        socketWriter.print("requestType=reqBuild&pw=123456&action=login"); // credentials needed
+	        socketWriter.println("requestType=reqBuild&pw=123456&action=login"); // credentials needed
 	        socketWriter.println("User=blah+blah&pw=123456&action=login"); // credentials needed
 	        socketWriter.println("Content-Length: 37"); // length of message needed
 	        socketWriter.println("Connection: Keep-Alive");

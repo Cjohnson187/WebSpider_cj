@@ -30,17 +30,12 @@ import com.chris.helper.Parser;
 
 
 public class Spider {
-	// was going to use a config gile
+	// was going to use a config file
 	private static final File config= new File("config/config.properties");
 
 	private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com"));
 	//private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com", "stage-st-stage.qa.siliconmtn.com/admintool"));
-	private static List<String> adminToolSitesToSearch = new ArrayList<>(Arrays.asList("https://stage-st-stage.qa.siliconmtn.com/admintool", 
-			"https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=index&actionId=FLUSH_CACHE", 
-			"https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=stats&actionId=FLUSH_CACHE", 
-			"https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=index&actionId=SCHEDULE_JOB_INSTANCE&organizationId=SMT_TEST", 
-			"https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=index&actionId=WEB_SOCKET&organizationId=SMT_TEST",
-			"https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=index&actionId=ERROR_LOG&organizationId=SMT_TEST"));																					
+	private static List<String> adminToolSitesToSearch = new ArrayList<>(Arrays.asList("https://www.siliconmtn.com/admintool"));																					
 	
 	private static LinkManager linkManager;
 	private static ConnectionManager connectMan;
@@ -67,6 +62,11 @@ public class Spider {
 			}
 		}
 	}
+	public static void adminCrawl() throws IOException {
+		connectMan = new ConnectionManager(linkManager.getNextPage());
+		Parser parser = new Parser(connectMan.getPage(), connectMan.GetBaseURL());
+		//parser.
+	}
 
 
 	/**
@@ -76,14 +76,17 @@ public class Spider {
 	 * @throws IOException 
 	 */
 	public static void main(String... args) throws IOException {
-		String s = "https://stage-st-stage.qa.siliconmtn.com/admintool?User=Chris.johnson%40siliconmtn.com&pw=1040SMTdisco%24&Content-Length=70";
+		//String s = "https://stage-st-stage.qa.siliconmtn.com/admintool?User=Chris.johnson%40siliconmtn.com&pw=1040SMTdisco%24&Content-Length=70";
+		String s = "https://www.siliconmtn.com/admintool/?requestType=reqBuild&pmid=ADMIN_LOGIN&emailAddress=chris.johnson%40siliconmtn.com&password=&l";
 		System.out.println(s.length());
 		linkManager = new LinkManager();
 		
 		// add base links to link manager
-		linkManager.addLink(sitesToSearch);	
+		//linkManager.addLink(sitesToSearch);	
+		linkManager.addLink(adminToolSitesToSearch);
+		//urlCrawl();
 		
-		urlCrawl();
+		//adminCrawl();
 	
 	}
 	
