@@ -30,9 +30,7 @@ import com.chris.helper.Parser;
 
 
 public class Spider {
-	// was going to use a config file
-	private static final File config= new File("config/config.properties");
-
+	
 	private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com"));
 	//private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com", "stage-st-stage.qa.siliconmtn.com/admintool"));
 	private static List<String> adminToolSitesToSearch = new ArrayList<>(Arrays.asList("https://www.siliconmtn.com/admintool"));																					
@@ -40,32 +38,35 @@ public class Spider {
 	private static LinkManager linkManager;
 	private static ConnectionManager connectMan;
 	
-	/**
-	 * Send post to body with login /cookie to parse pages.
-	 */
-	public static void SecurePageCrawl() {
-		
-	}
 	
 	/**
-	 * Crawling unsecured URLs from the link manager.
+	 * Crawl the unsecured sites
+	 * @throws IOException
 	 */
 	public static void urlCrawl() throws IOException {
 		
 		while(linkManager.hasNew()){
 			connectMan = new ConnectionManager(linkManager.getNextPage());
-			Parser parser = new Parser(connectMan.getPage(), connectMan.GetBaseURL());
+		
+			Parser parser = new Parser(connectMan.getPageFile(), connectMan.getHostName());
 			parser.parsePage();
 			
 			if(parser.getLinksFound() != null) {
-				linkManager.addLink(parser.getLinksFound(), connectMan.GetBaseURL());
+				linkManager.addLink(parser.getLinksFound(), connectMan.getHostName());
 			}
 		}
 	}
+	
+	/**
+	 * Crawl the secure sites
+	 * @throws IOException
+	 */
 	public static void adminCrawl() throws IOException {
 		connectMan = new ConnectionManager(linkManager.getNextPage());
-		Parser parser = new Parser(connectMan.getPage(), connectMan.GetBaseURL());
-		//parser.
+		System.out.println("pageFile and hostName " + connectMan.getPageFile()+ " " + connectMan.getHostName());
+		Parser parser = new Parser(connectMan.getPageFile(), connectMan.getHostName());
+		parser.parsePage();
+		
 	}
 
 
@@ -76,17 +77,17 @@ public class Spider {
 	 * @throws IOException 
 	 */
 	public static void main(String... args) throws IOException {
-		//String s = "https://stage-st-stage.qa.siliconmtn.com/admintool?User=Chris.johnson%40siliconmtn.com&pw=1040SMTdisco%24&Content-Length=70";
-		String s = "https://www.siliconmtn.com/admintool/?requestType=reqBuild&pmid=ADMIN_LOGIN&emailAddress=chris.johnson%40siliconmtn.com&password=&l";
-		System.out.println(s.length());
+		//String s = "https://stage-st-stage.qa.siliconmtn.com/admintool?User=&pw=&Content-Length=";
+		//String s = "https://www.siliconmtn.com/admintool/?requestType=reqBuild&pmid=ADMIN_LOGIN&emailAddress=&password=&l";
+		//System.out.println(s.length());
 		linkManager = new LinkManager();
 		
 		// add base links to link manager
-		//linkManager.addLink(sitesToSearch);	
-		linkManager.addLink(adminToolSitesToSearch);
-		//urlCrawl();
+		linkManager.addLink(sitesToSearch);	
+		//linkManager.addLink(adminToolSitesToSearch);
 		
-		//adminCrawl();
+		//urlCrawl();
+		adminCrawl();
 	
 	}
 	

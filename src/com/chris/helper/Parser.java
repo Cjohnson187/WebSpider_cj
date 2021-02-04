@@ -27,19 +27,23 @@ import org.jsoup.select.Elements;
 
 public class Parser {
 	
-	private String pageUri;
+	private String hostName;
 	private File file;
 	private List<String> linksToReturn;
 	
+	
 	/**
-	 * Making a parser with a socket and string for the page URI
-	 * @param uri
-	 * @param socket
+	 * Creating a parser and initializing a file and host 
+	 * name that was passed
+	 * @param file
+	 * @param pageUri
 	 */
-	public Parser(File file, String pageUri) {
+	public Parser(File file, String hostName) {
+		//TODO delete println
+		System.out.println("uri - " + hostName);
 		linksToReturn = new ArrayList<String>();
 		this.file = file;
-		this.pageUri = pageUri;
+		this.hostName = hostName;
 	}
 	
 	/**
@@ -56,16 +60,22 @@ public class Parser {
 	 * @throws IOException 
 	 */
 	public void parsePage() throws IOException {
-		Document doc = Jsoup.parse(file, "UTF-8", pageUri);
+		Document doc = Jsoup.parse(file, "UTF-8", hostName);
 		Elements links = doc.select("a[href]");
 		String linkFound = "";
 		
 		for(Element link: links) {
 			linkFound = extractLink(link.toString());
+			//TODO delete println
+			System.out.println("link found" + linkFound);
 			if(linkFound.length() > 1 && linkFound.charAt(0) == '/') {
-				linksToReturn.add(GetBaseURL() + linkFound);
+				linksToReturn.add(getHostName() + linkFound);
 			}
 		}
+		//TODO do something with jsession id
+		Elements response = doc.select("JSESSIONID");
+		//TODO delete println
+		System.out.println("jsessionID" + response.toString());
 	}
 	
 	/**
@@ -91,19 +101,19 @@ public class Parser {
 	}
 	
 	/**
-	 * Getting the base url of the current page.
+	 * Getting the host name of the current page.
 	 * @return
 	 */
-    private String GetBaseURL() {
+    private String getHostName() {
 		StringBuilder base = new StringBuilder();
 		try {
-			for (int i=0; i< pageUri.length(); i++) {
-				if (pageUri.charAt(i) != '/') {
-					base.append(pageUri.charAt(i));
+			for (int i=0; i< hostName.length(); i++) {
+				if (hostName.charAt(i) != '/') {
+					base.append(hostName.charAt(i));
 				} else break;
 			}
 		} catch(NullPointerException e) {
-			System.out.println("Error getting base url. Nullpointer Exception -" + e);
+			System.out.println("Error getting host name. Nullpointer Exception -" + e);
 		}
 		return base.toString();
 	}

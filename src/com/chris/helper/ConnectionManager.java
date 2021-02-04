@@ -10,6 +10,9 @@ import java.io.PrintWriter;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
@@ -34,6 +37,7 @@ public class ConnectionManager {
     private String link;
     private File file;
     private final String fileDir = "files/";
+    private Map<String, String> response;
 
     private static SSLSocket socket;
     BufferedReader socketReader;
@@ -43,23 +47,27 @@ public class ConnectionManager {
      * Empty constructor since the URL will most likely be changing a few times.
      */
     public ConnectionManager(String link) {
+    	//TODO delete println
+    	System.out.println("link - " + link);
     	this.link = link;
+    	this.response = new HashMap<String, String>();
     }
     
     /**
      * Connect to page and save the response in a document for the parser.
      * @return
      */
-    public File getPage() {
+    public File getPageFile() {
     	connectSocket();
     	sendGet();
     	savePage();
     	return file;
     }
     
-    public File getSecurePage() {
+    public File getSecurePageFile() {
     	connectSocket();
     	sendPost();
+    	savePage();
     	return file;
     }
 
@@ -69,7 +77,7 @@ public class ConnectionManager {
     private void connectSocket() {
         SSLSocketFactory factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
         try {
-			socket = (SSLSocket) factory.createSocket(GetBaseURL(), 443);
+			socket = (SSLSocket) factory.createSocket(getHostName(), 443);
 		} catch (UnknownHostException e) {
 			System.out.println("unknown host exception - " + e);
 			e.printStackTrace();
@@ -86,7 +94,7 @@ public class ConnectionManager {
     	try (PrintWriter socketWriter = new PrintWriter(socket.getOutputStream())){
             // basic post to get  HTML
             socketWriter.println("GET http://" + link + " HTTP/1.1");
-            socketWriter.println("Host: " + GetBaseURL());
+            socketWriter.println("Host: " + getHostName());
 
             // adding carriage return and sending
             socketWriter.println();
@@ -108,6 +116,7 @@ public class ConnectionManager {
     private void sendPost(){
 		try (PrintWriter socketWriter = new PrintWriter(socket.getOutputStream())){
 			//https://www.siliconmtn.com/admintool?emailAddress=chris.johnson%40siliconmtn.com&password=1040SMTdisco%23&l
+			//TODO delete println
 			System.out.println("address get host name" + address.getHostName());
 	        socketWriter.print("POST http://" + address.getHostName() + " HTTP/1.1");
 	        socketWriter.print("Host: " + address.getHostName());
@@ -132,36 +141,36 @@ public class ConnectionManager {
     }
         
 	/**
-	 * Getting the base url of the current page.
+	 * Getting the host name of the current page.
 	 * @return
 	 */
-    public String GetBaseURL() {
-		StringBuilder base = new StringBuilder();
+    public String getHostName() {
+		StringBuilder host = new StringBuilder();
 		try {
 			for (int i=0; i< link.length(); i++) {
 				if (link.charAt(i) != '/') {
-					base.append(link.charAt(i));
+					host.append(link.charAt(i));
 				} else break;
 			}
 			
 		} catch(NullPointerException e) {
-			System.out.println("Error getting base url. Nullpointer Exception -" + e);
+			System.out.println("Error getting host name. Nullpointer Exception -" + e);
 		}
-		return base.toString();
+		return host.toString();
 	}
     
     /**
-     * Save the page to a file for the parser.
+     * Save the page including response to a file for the parser.
      */
     private void savePage() {
-		file = new File(fileDir+ getFileName());
+		file = new File(fileDir + makeFileName());
 		String line="";
 		
 		try ( BufferedWriter out = new BufferedWriter(new FileWriter(file)) ){
-			
-			
+		
 			while((line= socketReader.readLine()) != null) {
 				out.write(line);
+				// breaking at and of html page because the reader would no stop
 				if(line.contains("</html>")) {
 					break;
 				}
@@ -182,10 +191,10 @@ public class ConnectionManager {
 	}
 	
 	/**
-	 * Make a file name to save in a directory.
+	 * Make a file name by replacing reserved characters to save in a directory.
 	 * @return
 	 */
-	private String getFileName() {
+	private String makeFileName() {
 		return link.replaceAll("/", "_").replaceAll(":", "-");
 	}
  
