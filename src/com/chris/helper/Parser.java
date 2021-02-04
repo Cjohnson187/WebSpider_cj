@@ -39,8 +39,6 @@ public class Parser {
 	 * @param pageUri
 	 */
 	public Parser(File file, String hostName) {
-		//TODO delete println
-		System.out.println("uri - " + hostName);
 		linksToReturn = new ArrayList<String>();
 		this.file = file;
 		this.hostName = hostName;

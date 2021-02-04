@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 
 import java.net.InetAddress;
@@ -54,11 +55,9 @@ public class ConnectionManager {
      */
     public ConnectionManager(String link) {
     	//TODO delete println
-    	System.out.println("prop " + PROPERTIES.getProperty("usernamme"));
-    	System.out.println("link - " + link);
     	this.link = link;
     	this.directory = "";
-    	this.hostName = "";
+    	this.hostName = getHostName();
     }
     
     /**
@@ -68,7 +67,6 @@ public class ConnectionManager {
     public File getPageFile() {
     	connectSocket();
     	sendGet();
-    	savePage();
     	return file;
     }
     /**
@@ -78,7 +76,6 @@ public class ConnectionManager {
     public File getSecurePageFile() {
     	connectSocket();
     	sendPost();
-    	savePage();
     	return file;
     }
 
@@ -88,8 +85,9 @@ public class ConnectionManager {
     private void connectSocket() {
         SSLSocketFactory factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
         try {
-        	System.out.println("host name in con man " + getHostName());
-			socket = (SSLSocket) factory.createSocket(getHostName(), 443);
+			socket = (SSLSocket) factory.createSocket(hostName, 443);
+			//TODO probably dont need the handshake check
+			socket.startHandshake();
 		} catch (UnknownHostException e) {
 			System.out.println("unknown host exception - " + e);
 			e.printStackTrace();
@@ -103,17 +101,26 @@ public class ConnectionManager {
      * Make get request for the current page
      */
     private void sendGet(){
-    	try (PrintWriter socketWriter = new PrintWriter(socket.getOutputStream())){
-    		//TODO clean this or return it to how it was
-    		//socketWriter.println("GET http://" + link + " HTTP/1.1");
-            socketWriter.println("GET http://" + hostName + " HTTP/1.1");
+    	 
+    	try (PrintWriter socketWriter = new PrintWriter(
+                new BufferedWriter(
+                new OutputStreamWriter(
+                socket.getOutputStream())))){
+    		//TODO clean this preintln or return it to how it was
+    		System.out.println("direc " + directory + " host " + hostName );
+            socketWriter.println("GET " + directory + " HTTP/1.1");
             socketWriter.println("Host: " + hostName);
+            socketWriter.println("User-Agent: Mozilla/4.0 (compatible; MSIE5.01; Windows NT");
+            socketWriter.println("Accept-Language: en-us");
+            socketWriter.println("Connection: Keep-Alive");
             // adding carriage return
             socketWriter.println();
             // send request
             socketWriter.flush();
             
             socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            
+            savePage();
 
 		} catch (IOException e) {
 			System.out.println("IO exception - " + e);
@@ -136,7 +143,9 @@ public class ConnectionManager {
 			params += "&password=" + PROPERTIES.getProperty("password") + "&l=";
 			System.out.println("post - " + params + " len - " + s.length() + "  " + directory + "  " + hostName );
 			// params len 102 encoded + 4  
-
+			socketWriter.println("POST " + directory + " HTTP/1.1");
+			socketWriter.println("POST " + directory + " HTTP/1.1");
+			socketWriter.println("POST " + directory + " HTTP/1.1");
 	        socketWriter.println("POST " + directory + " HTTP/1.1");
 	        socketWriter.println("Host: " + hostName);
 	        socketWriter.println("content-type: application/x-www-form-urlencoded");
@@ -150,7 +159,29 @@ public class ConnectionManager {
 	        // send request to page
 	        socketWriter.flush();    
 	        
+//			String params = "requestType=reqBuild&pmid=ADMIN_LOGIN";
+//			params += "&emailAddress=" + PROPERTIES.getProperty("usernamme");
+//			params += "&password=" + PROPERTIES.getProperty("password") + "&l=";
+//			System.out.println("post - " + params + " len - " + s.length() + "  " + directory + "  " + hostName );
+//			// params len 102 encoded + 4  
+//
+//	        socketWriter.println("POST " + directory + " HTTP/1.1");
+//	        socketWriter.println("Host: " + hostName);
+//	        socketWriter.println("content-type: application/x-www-form-urlencoded");
+//	        socketWriter.println("accept-encoding: gzip, deflate, br");
+//	        socketWriter.println("user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36");
+//	        //socketWriter.println("Content-Length: 106"); // length of message needed
+//	        socketWriter.println("Cache-Control: no-cache");
+//	        // writing params
+//	        socketWriter.println(params);
+//	        socketWriter.println("");
+//	        // send request to page
+//	        socketWriter.flush();    
+
+	        
 	        socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+	        
+	    	savePage();
 
 		} catch (IOException e) {
 			System.out.println("IO exception - " + e);
@@ -167,7 +198,7 @@ public class ConnectionManager {
 		//removing protocol
 		String newLink = link.replace("http://", "");
 		newLink = newLink.replace("https://", "");
-		System.out.println(" +++++ " + newLink);
+		//System.out.println(" +++++ " + newLink);
 		try {
 			for (int i=0; i< newLink.length(); i++) {
 				if (newLink.charAt(i) != '/') {
@@ -194,9 +225,9 @@ public class ConnectionManager {
 		
 		try ( BufferedWriter out = new BufferedWriter(new FileWriter(file)) ){
 		
-			while((line= socketReader.readLine()) != null) {
+			while((line = socketReader.readLine()) != null) {
 				//TODO delete println
-				System.out.println(line);
+				System.out.println(line.toString());
 				out.write(line);
 				// breaking at and of html page because the reader would no stop
 				if(line.contains("</html>")) {

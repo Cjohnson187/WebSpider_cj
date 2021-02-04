@@ -33,7 +33,7 @@ import com.chris.helper.Parser;
 
 public class Spider {
 	
-	private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("https://www.siliconmtn.com"));
+	private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("https://www.siliconmtn.com/"));
 	//private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com", "stage-st-stage.qa.siliconmtn.com/admintool"));
 	private static List<String> adminToolSitesToSearch = new ArrayList<>(Arrays.asList("https://stage-st-stage.qa.siliconmtn.com/admintool"));																					
 	
