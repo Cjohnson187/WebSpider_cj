@@ -105,17 +105,17 @@ public class Parser {
 	 * @return
 	 */
     private String getHostName() {
-		StringBuilder base = new StringBuilder();
+		StringBuilder host = new StringBuilder();
 		try {
 			for (int i=0; i< hostName.length(); i++) {
 				if (hostName.charAt(i) != '/') {
-					base.append(hostName.charAt(i));
+					host.append(hostName.charAt(i));
 				} else break;
 			}
 		} catch(NullPointerException e) {
 			System.out.println("Error getting host name. Nullpointer Exception -" + e);
 		}
-		return base.toString();
+		return host.toString();
 	}
 
 

@@ -6,10 +6,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 import com.chris.helper.ConnectionManager;
 import com.chris.helper.LinkManager;
 import com.chris.helper.Parser;
+
 
 /****************************************************************************
  * <b>Title</b>: Spider.java
@@ -31,12 +33,13 @@ import com.chris.helper.Parser;
 
 public class Spider {
 	
-	private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com"));
+	private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("https://www.siliconmtn.com"));
 	//private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com", "stage-st-stage.qa.siliconmtn.com/admintool"));
-	private static List<String> adminToolSitesToSearch = new ArrayList<>(Arrays.asList("https://www.siliconmtn.com/admintool"));																					
+	private static List<String> adminToolSitesToSearch = new ArrayList<>(Arrays.asList("https://stage-st-stage.qa.siliconmtn.com/admintool"));																					
 	
 	private static LinkManager linkManager;
 	private static ConnectionManager connectMan;
+	
 	
 	
 	/**
@@ -63,8 +66,9 @@ public class Spider {
 	 */
 	public static void adminCrawl() throws IOException {
 		connectMan = new ConnectionManager(linkManager.getNextPage());
-		System.out.println("pageFile and hostName " + connectMan.getPageFile()+ " " + connectMan.getHostName());
-		Parser parser = new Parser(connectMan.getPageFile(), connectMan.getHostName());
+		//TODO delete println
+		System.out.println("pageFile and hostName " + connectMan.getSecurePageFile()+ " " + connectMan.getHostName());
+		Parser parser = new Parser(connectMan.getSecurePageFile(), connectMan.getHostName());
 		parser.parsePage();
 		
 	}
@@ -77,17 +81,14 @@ public class Spider {
 	 * @throws IOException 
 	 */
 	public static void main(String... args) throws IOException {
-		//String s = "https://stage-st-stage.qa.siliconmtn.com/admintool?User=&pw=&Content-Length=";
-		//String s = "https://www.siliconmtn.com/admintool/?requestType=reqBuild&pmid=ADMIN_LOGIN&emailAddress=&password=&l";
-		//System.out.println(s.length());
 		linkManager = new LinkManager();
 		
 		// add base links to link manager
 		linkManager.addLink(sitesToSearch);	
 		//linkManager.addLink(adminToolSitesToSearch);
 		
-		//urlCrawl();
-		adminCrawl();
+		urlCrawl();
+		//adminCrawl();
 	
 	}
 	

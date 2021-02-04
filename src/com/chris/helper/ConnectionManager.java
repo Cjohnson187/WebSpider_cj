@@ -12,9 +12,12 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+
+import com.chris.helper.PropertiesLoader;
 
 /****************************************************************************
  * <b>Title</b>: ConnectionManager.java <b>Project</b>: WebSpider
@@ -32,12 +35,15 @@ import javax.net.ssl.SSLSocketFactory;
  * @updates:
  ****************************************************************************/
 public class ConnectionManager {
-
+	private static final PropertiesLoader propertiesLoader = new PropertiesLoader();
+	private static final Properties PROPERTIES = propertiesLoader.readPropFile();
     private String cookie;
     private String link;
+    private String directory;
+    private String hostName;
     private File file;
-    private final String fileDir = "files/";
-    private Map<String, String> response;
+    private final String FILE_DIR = "files/";
+    
 
     private static SSLSocket socket;
     BufferedReader socketReader;
@@ -48,9 +54,11 @@ public class ConnectionManager {
      */
     public ConnectionManager(String link) {
     	//TODO delete println
+    	System.out.println("prop " + PROPERTIES.getProperty("usernamme"));
     	System.out.println("link - " + link);
     	this.link = link;
-    	this.response = new HashMap<String, String>();
+    	this.directory = "";
+    	this.hostName = "";
     }
     
     /**
@@ -63,7 +71,10 @@ public class ConnectionManager {
     	savePage();
     	return file;
     }
-    
+    /**
+     * Post login for admintool
+     * @return
+     */
     public File getSecurePageFile() {
     	connectSocket();
     	sendPost();
@@ -77,6 +88,7 @@ public class ConnectionManager {
     private void connectSocket() {
         SSLSocketFactory factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
         try {
+        	System.out.println("host name in con man " + getHostName());
 			socket = (SSLSocket) factory.createSocket(getHostName(), 443);
 		} catch (UnknownHostException e) {
 			System.out.println("unknown host exception - " + e);
@@ -92,11 +104,11 @@ public class ConnectionManager {
      */
     private void sendGet(){
     	try (PrintWriter socketWriter = new PrintWriter(socket.getOutputStream())){
-            // basic post to get  HTML
-            socketWriter.println("GET http://" + link + " HTTP/1.1");
-            socketWriter.println("Host: " + getHostName());
-
-            // adding carriage return and sending
+    		//TODO clean this or return it to how it was
+    		//socketWriter.println("GET http://" + link + " HTTP/1.1");
+            socketWriter.println("GET http://" + hostName + " HTTP/1.1");
+            socketWriter.println("Host: " + hostName);
+            // adding carriage return
             socketWriter.println();
             // send request
             socketWriter.flush();
@@ -115,20 +127,26 @@ public class ConnectionManager {
      */
     private void sendPost(){
 		try (PrintWriter socketWriter = new PrintWriter(socket.getOutputStream())){
-			//https://www.siliconmtn.com/admintool?emailAddress=chris.johnson%40siliconmtn.com&password=1040SMTdisco%23&l
-			//TODO delete println
-			System.out.println("address get host name" + address.getHostName());
-	        socketWriter.print("POST http://" + address.getHostName() + " HTTP/1.1");
-	        socketWriter.print("Host: " + address.getHostName());
-	        socketWriter.print("requestType=reqBuild&"); // credentials needed
-	        socketWriter.print("requestType=reqBuild&pw=123456&action=login"); // credentials needed
-	        socketWriter.println("requestType=reqBuild&pw=123456&action=login"); // credentials needed
-	        socketWriter.println("User=blah+blah&pw=123456&action=login"); // credentials needed
-	        socketWriter.println("Content-Length: 37"); // length of message needed
-	        socketWriter.println("Connection: Keep-Alive");
+			// writing params
+			// may not need req type and pmid if i use content length
+			String s = "requestType=reqBuild&pmid=ADMIN_LOGIN&emailAddress=chris.johnson%40siliconmtn.com&password=1040Disco%23&l=";
+			//               ? before req
+			String params = "requestType=reqBuild&pmid=ADMIN_LOGIN";
+			params += "&emailAddress=" + PROPERTIES.getProperty("usernamme");
+			params += "&password=" + PROPERTIES.getProperty("password") + "&l=";
+			System.out.println("post - " + params + " len - " + s.length() + "  " + directory + "  " + hostName );
+			// params len 102 encoded + 4  
+
+	        socketWriter.println("POST " + directory + " HTTP/1.1");
+	        socketWriter.println("Host: " + hostName);
+	        socketWriter.println("content-type: application/x-www-form-urlencoded");
+	        socketWriter.println("accept-encoding: gzip, deflate, br");
+	        socketWriter.println("user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36");
+	        //socketWriter.println("Content-Length: 106"); // length of message needed
 	        socketWriter.println("Cache-Control: no-cache");
-	        // adding carriage return and sending
-	        socketWriter.println();
+	        // writing params
+	        socketWriter.println(params);
+	        socketWriter.println("");
 	        // send request to page
 	        socketWriter.flush();    
 	        
@@ -146,16 +164,24 @@ public class ConnectionManager {
 	 */
     public String getHostName() {
 		StringBuilder host = new StringBuilder();
+		//removing protocol
+		String newLink = link.replace("http://", "");
+		newLink = newLink.replace("https://", "");
+		System.out.println(" +++++ " + newLink);
 		try {
-			for (int i=0; i< link.length(); i++) {
-				if (link.charAt(i) != '/') {
-					host.append(link.charAt(i));
+			for (int i=0; i< newLink.length(); i++) {
+				if (newLink.charAt(i) != '/') {
+					host.append(newLink.charAt(i));
 				} else break;
 			}
-			
+			// checking for address
+			if(newLink.length() > host.length()) {
+				directory = newLink.replace(host.toString(), "");
+			}
 		} catch(NullPointerException e) {
 			System.out.println("Error getting host name. Nullpointer Exception -" + e);
 		}
+		hostName = host.toString();
 		return host.toString();
 	}
     
@@ -163,12 +189,14 @@ public class ConnectionManager {
      * Save the page including response to a file for the parser.
      */
     private void savePage() {
-		file = new File(fileDir + makeFileName());
+		file = new File(FILE_DIR + makeFileName());
 		String line="";
 		
 		try ( BufferedWriter out = new BufferedWriter(new FileWriter(file)) ){
 		
 			while((line= socketReader.readLine()) != null) {
+				//TODO delete println
+				System.out.println(line);
 				out.write(line);
 				// breaking at and of html page because the reader would no stop
 				if(line.contains("</html>")) {
@@ -182,13 +210,6 @@ public class ConnectionManager {
 		}
 	}
 		
-	/**
-	 * getting the entire URL
-	 * @return
-	 */
-	public String GetURL() {
-		return address.getHostName();
-	}
 	
 	/**
 	 * Make a file name by replacing reserved characters to save in a directory.
