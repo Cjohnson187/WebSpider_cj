@@ -41,11 +41,13 @@ public class LinkManager {
 	 * @param site
 	 */
 	public LinkManager(String site) {
-		setHostName(site);
 		// initialize set for sites that will be checked
 		visited  = new HashSet<>();
 		// initialize q and add starting site
 		priority = new PriorityQueue<String>();
+		setHostName(site);
+		//TODO delete pritnln
+		System.out.println("ln 50 linkman, host = " + host + "  priority =" + priority.toString() + "  visited= " + visited.toString());
 	}	
 	
 	/**
@@ -59,10 +61,12 @@ public class LinkManager {
 		url = url.replace("https://", "");
 		if(url.contains("/")) {
 			dir  = url.substring(url.indexOf("/"));
-			url = url.substring(0, url.indexOf("/"));
 			priority.add(dir);
 		}
-		host = url;
+		host = url.substring(0, url.indexOf("/"));
+		
+		//TODO delete pritnln
+		System.out.println( "ln 69, link man host" + host + "   dir = " + dir);
 	}
 	
 	/**
@@ -72,8 +76,14 @@ public class LinkManager {
 	public void addLinks(List<String> dirs) {
 		try {
 			for (String dir: dirs) {
+				//TODO delete pritnln
+				System.out.println("ln 80 linkman, dir = " + dir);
+
 				// add link to q if not in set that indicates sites visited
 				if(!visited.contains(host+dir) && !priority.contains(dir)) {
+					//TODO delete pritnln
+					System.out.println("ln 85 conman, adding dir = " + dir);
+
 					priority.add(dir);
 				}
 			}
@@ -96,7 +106,7 @@ public class LinkManager {
 	 */
 	public String getNextPage() {
 		try {
-			String currentPage = host + priority.poll();
+			String currentPage = priority.poll();
 			visited.add(currentPage);
 			return currentPage;
 		}

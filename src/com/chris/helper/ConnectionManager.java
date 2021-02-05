@@ -38,18 +38,13 @@ public class ConnectionManager {
 	private static final String FILE_DIR = PROPERTIES.getProperty("fileDir");
 	
     private String cookie;
-    
-    private String directory;
     private String hostName;
-    private static File file;
-    
-    private static String link;
+
+    private static String directory;
     
     private LinkManager linkMan;
-    
-
     private static SSLSocket socket;
-    BufferedReader socketReader;
+    private static BufferedReader socketReader;
     
     /**
      * Building ConnectionManager with linkManager to manage pages while socket is connected
@@ -58,6 +53,10 @@ public class ConnectionManager {
     public ConnectionManager(LinkManager linkMan) {
     	this.linkMan = linkMan;
     	this.hostName = linkMan.getHost();
+    	
+		//TODO delete pritnln
+		System.out.println("ln 57 conman hostname from linkman = " + hostName);
+
     	this.directory = "";
     }
     
@@ -66,16 +65,16 @@ public class ConnectionManager {
      */
     public void getBasic() {
     	connectSocket();
-    	sendGet();
+    	//sendGet();
     }
     
     /**
      * Uses Post login for admintool pages
      */
     public void getAdminToolPages() {
-    	connectSocket();
+    	//connectSocketSecure();
     	//TODO fix post method
-    	sendPost();
+    	//sendPost();
     }
 
     /**
@@ -84,16 +83,24 @@ public class ConnectionManager {
     private void connectSocket() {
     	Pair responsePair = new Pair();
         SSLSocketFactory factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
-        try (SSLSocket socket = (SSLSocket) factory.createSocket(hostName, 443)) {
+        try {
+        	socket = (SSLSocket) factory.createSocket(hostName, 443);
+    		//TODO delete pritnln
+    		System.out.println("ln 87 con man hostnam = " + hostName);
+
         	socket.startHandshake();
         	while(linkMan.hasNew()) {
         		directory = linkMan.getNextPage();
+        		//TODO delete pritnln
+        		System.out.println("ln 93 conman directory = " + directory);
+
             	sendGet();
             	// Getting String(header) and File(html) to parse with jsoup.
             	responsePair = getResponse();
-            	cookie = Parser.parseResponse(responsePair.getResponse());
-            	linkMan.addLinks(Parser.parsePage(file, hostName));
-            	
+            	cookie = Parser.getCookieFromResponse(responsePair.getResponse());
+            	linkMan.addLinks(Parser.getLinksFromFile(responsePair.getFile(), hostName));
+				//TODO delete pritnln
+				System.out.println("ln 103 conman, cookie = " + cookie);
             	
             	//TODO break for now just to test
             	break;
@@ -116,6 +123,9 @@ public class ConnectionManager {
                 new BufferedWriter(
                 new OutputStreamWriter(
                 socket.getOutputStream())))){
+    		//TODO delete pritnln
+    		System.out.println("ln 124 conman directory = " + directory + "  hostname = " + hostName);
+
             socketWriter.println("GET " + directory + " HTTP/1.1");
             socketWriter.println("Host: " + hostName);
             socketWriter.println("User-Agent: Mozilla/4.0 (compatible; MSIE5.01; Windows NT");
@@ -125,26 +135,34 @@ public class ConnectionManager {
             socketWriter.println();
             // send request
             socketWriter.flush();
+            
+            // making socket reader
+            socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
 		} catch (IOException e) {
 			System.out.println("IO exception - " + e);
 			e.printStackTrace();
 		}
+
     }
     
     /**
      * Getting response from socket.
      */
     private static Pair getResponse() {
-    	Pair responseMap = new Pair();
+    	// Making a pair from the string response and File to parse later
+    	
+    	Pair responsePair = new Pair();
     	String response = "";
-    	file = new File(FILE_DIR + makeFileName());
-    	try (BufferedReader socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-    			BufferedWriter out = new BufferedWriter(new FileWriter(file))){
-		
+		//TODO delete pritnln
+		System.out.println("ln 151 conman  filedir + makefilename() = " + (FILE_DIR + "+++"+ makeFileName()));
+
+    	File file = new File(FILE_DIR + makeFileName());
+    	try (BufferedWriter out = new BufferedWriter(new FileWriter(file))){
     		String line = "";
+    		// Using this boolean to split response and html.
 			boolean isResponse = true;
-			while ((line  = socketReader.readLine()) != null) {
+			while ((line = socketReader.readLine()) != null) {
 				if (isResponse) {
 					// Concatenating response.
 					response += line;
@@ -154,17 +172,27 @@ public class ConnectionManager {
 				}
 				// Response finished starting to read html
 				if (line.contains("<html>")) isResponse = false;
+				//TODO delete pritnln
+				System.out.println("ln 170 conman  stopped reading response, starting html to file");
+				
 				// writing page to file
 				if(!isResponse) out.write(line);
 				
-				if (line.contains("</html>")) break;
+				//breaking here because my reader wasn't closing
+				if (line.contains("</html>")) {
+					socketReader.close();
+					break;
+				}
+				
+				//TODO delete pritnln
+				System.out.println("ln 178 conman  break for end of html, response = " + response);
 			}
-			responseMap = new Pair(response, file);
+			responsePair = new Pair(response, file);
     		
 		} catch (Exception e) {
 			System.out.println("Could not read response Exception  e - " + e);
 		}
-    	return responseMap;
+    	return responsePair;
     }
     
     
@@ -173,42 +201,42 @@ public class ConnectionManager {
     /**
      * Make post request for login on secure site
      */
-    private void sendPost(){
-		try (PrintWriter socketWriter = new PrintWriter(socket.getOutputStream())){
-			// writing params
-			String params = "?requestType=reqBuild&pmid=ADMIN_LOGIN";
-			params += "&emailAddress=" + PROPERTIES.getProperty("usernamme");
-			params += "&password=" + PROPERTIES.getProperty("password") + "&l=";
-
-			socketWriter.println("POST " + directory + " HTTP/1.1");
-	        socketWriter.println("Host: " + hostName);
-	        socketWriter.println("content-type: application/x-www-form-urlencoded");
-	        socketWriter.println("user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36");
-	        socketWriter.println("Content-Length: " + params.length()); // length of message needed
-	        
-	        // writing params
-	        socketWriter.println();
-	        socketWriter.println(params);
-	        socketWriter.println();
-	        // send request to page
-	        socketWriter.flush();    
-	        
-	        socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-	        
-	    	//savePage();
-
-		} catch (IOException e) {
-			System.out.println("IO exception - " + e);
-			e.printStackTrace();
-		}
-    }
+//    private void sendPost(){
+//		try (PrintWriter socketWriter = new PrintWriter(socket.getOutputStream())){
+//			// writing params
+//			String params = "?requestType=reqBuild&pmid=ADMIN_LOGIN";
+//			params += "&emailAddress=" + PROPERTIES.getProperty("usernamme");
+//			params += "&password=" + PROPERTIES.getProperty("password") + "&l=";
+//
+//			socketWriter.println("POST " + directory + " HTTP/1.1");
+//	        socketWriter.println("Host: " + hostName);
+//	        socketWriter.println("content-type: application/x-www-form-urlencoded");
+//	        socketWriter.println("user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36");
+//	        socketWriter.println("Content-Length: " + params.length()); // length of message needed
+//	        
+//	        // writing params
+//	        socketWriter.println();
+//	        socketWriter.println(params);
+//	        socketWriter.println();
+//	        // send request to page
+//	        socketWriter.flush();    
+//	        
+//	        //socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+//	        
+//	    	//savePage();
+//
+//		} catch (IOException e) {
+//			System.out.println("IO exception - " + e);
+//			e.printStackTrace();
+//		}
+//    }
     
 	/**
 	 * Make a file name by replacing reserved characters to save in a directory.
 	 * @return
 	 */
 	private static String makeFileName() {
-		return link.replaceAll("/", "_").replaceAll(":", "-");
+		return directory.replaceAll("/", "_").replaceAll(":", "-");
 	}
  
     /**

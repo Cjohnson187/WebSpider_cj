@@ -41,7 +41,7 @@ public class Parser {
 	 * @param response
 	 * @return
 	 */
-	public static String parseResponse(String response) {
+	public static String getCookieFromResponse(String response) {
 		// making document from response for Jsoup to parse
 		Document doc = Jsoup.parse(response);
 		return doc.select("JSESSIONID").toString();
@@ -52,7 +52,7 @@ public class Parser {
 	 * @param socketStream
 	 * @throws IOException 
 	 */
-	public static List<String> parsePage(File file, String hostName) throws IOException {
+	public static List<String> getLinksFromFile(File file, String hostName) throws IOException {
 		List<String> linksToReturn = new ArrayList<>();
 		Document doc = Jsoup.parse(file, "UTF-8", hostName);
 		Elements links = doc.select("a[href]");
@@ -62,7 +62,7 @@ public class Parser {
 			dirFound = extractLink(link.toString());
 			
 			//TODO delete println
-			System.out.println("link found" + dirFound);
+			System.out.println("lin 65 parser, link found = " + dirFound);
 			
 			if(dirFound.length() > 1 && dirFound.charAt(0) == '/') {
 				linksToReturn.add(dirFound);
