@@ -68,8 +68,9 @@ public class Spider {
 		connectMan = new ConnectionManager(linkManager.getNextPage());
 		//TODO delete println
 		System.out.println("pageFile and hostName " + connectMan.getSecurePageFile()+ " " + connectMan.getHostName());
-		Parser parser = new Parser(connectMan.getSecurePageFile(), connectMan.getHostName());
-		parser.parsePage();
+		connectMan.getSecurePageFile();
+		//Parser parser = new Parser(connectMan.getSecurePageFile(), connectMan.getHostName());
+		//parser.parsePage();
 		
 	}
 
@@ -84,11 +85,11 @@ public class Spider {
 		linkManager = new LinkManager();
 		
 		// add base links to link manager
-		linkManager.addLink(sitesToSearch);	
-		//linkManager.addLink(adminToolSitesToSearch);
+		//linkManager.addLink(sitesToSearch);	
+		linkManager.addLink(adminToolSitesToSearch);
 		
-		urlCrawl();
-		//adminCrawl();
+		//urlCrawl();
+		adminCrawl();
 	
 	}
 	

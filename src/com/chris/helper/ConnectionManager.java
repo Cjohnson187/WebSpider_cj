@@ -126,7 +126,6 @@ public class ConnectionManager {
 			System.out.println("IO exception - " + e);
 			e.printStackTrace();
 		}
-        
     }
     
     /**
@@ -136,48 +135,46 @@ public class ConnectionManager {
 		try (PrintWriter socketWriter = new PrintWriter(socket.getOutputStream())){
 			// writing params
 			// may not need req type and pmid if i use content length
-			String s = "requestType=reqBuild&pmid=ADMIN_LOGIN&emailAddress=chris.johnson%40siliconmtn.com&password=1040Disco%23&l=";
 			//               ? before req
-			String params = "requestType=reqBuild&pmid=ADMIN_LOGIN";
+			String params = "?requestType=reqBuild&pmid=ADMIN_LOGIN";
 			params += "&emailAddress=" + PROPERTIES.getProperty("usernamme");
 			params += "&password=" + PROPERTIES.getProperty("password") + "&l=";
-			System.out.println("post - " + params + " len - " + s.length() + "  " + directory + "  " + hostName );
+			
+			System.out.println("post - " + params + " len - " + params.length() + "  " + directory + "  " + hostName );
 			// params len 102 encoded + 4  
 			socketWriter.println("POST " + directory + " HTTP/1.1");
-			socketWriter.println("POST " + directory + " HTTP/1.1");
-			socketWriter.println("POST " + directory + " HTTP/1.1");
-	        socketWriter.println("POST " + directory + " HTTP/1.1");
 	        socketWriter.println("Host: " + hostName);
 	        socketWriter.println("content-type: application/x-www-form-urlencoded");
-	        socketWriter.println("accept-encoding: gzip, deflate, br");
 	        socketWriter.println("user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36");
-	        //socketWriter.println("Content-Length: 106"); // length of message needed
-	        socketWriter.println("Cache-Control: no-cache");
+	        socketWriter.println("Content-Length: " + params.length()); // length of message needed
+	        
 	        // writing params
+	        socketWriter.println();
 	        socketWriter.println(params);
-	        socketWriter.println("");
+	        socketWriter.println();
 	        // send request to page
 	        socketWriter.flush();    
 	        
-//			String params = "requestType=reqBuild&pmid=ADMIN_LOGIN";
-//			params += "&emailAddress=" + PROPERTIES.getProperty("usernamme");
-//			params += "&password=" + PROPERTIES.getProperty("password") + "&l=";
-//			System.out.println("post - " + params + " len - " + s.length() + "  " + directory + "  " + hostName );
-//			// params len 102 encoded + 4  
-//
-//	        socketWriter.println("POST " + directory + " HTTP/1.1");
-//	        socketWriter.println("Host: " + hostName);
-//	        socketWriter.println("content-type: application/x-www-form-urlencoded");
-//	        socketWriter.println("accept-encoding: gzip, deflate, br");
-//	        socketWriter.println("user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36");
-//	        //socketWriter.println("Content-Length: 106"); // length of message needed
-//	        socketWriter.println("Cache-Control: no-cache");
-//	        // writing params
-//	        socketWriter.println(params);
-//	        socketWriter.println("");
-//	        // send request to page
-//	        socketWriter.flush();    
-
+			/*
+			 * // String params = "requestType=reqBuild&pmid=ADMIN_LOGIN"; //
+			 * params += "&emailAddress=" + PROPERTIES.getProperty("usernamme");
+			 * // params += "&password=" + PROPERTIES.getProperty("password") +
+			 * "&l="; // System.out.println("post - " + params + " len - " +
+			 * s.length() + "  " + directory + "  " + hostName ); // // params
+			 * len 102 encoded + 4 // // socketWriter.println("POST " +
+			 * directory + " HTTP/1.1"); // socketWriter.println("Host: " +
+			 * hostName); // socketWriter.
+			 * println("content-type: application/x-www-form-urlencoded"); //
+			 * socketWriter.println("accept-encoding: gzip, deflate, br"); //
+			 * socketWriter.
+			 * println("user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36"
+			 * ); // //socketWriter.println("Content-Length: 106"); // length of
+			 * message needed //
+			 * socketWriter.println("Cache-Control: no-cache"); // // writing
+			 * params // socketWriter.println(params); //
+			 * socketWriter.println(""); // // send request to page //
+			 * socketWriter.flush();
+			 */
 	        
 	        socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	        
