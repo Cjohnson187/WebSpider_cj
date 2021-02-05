@@ -1,6 +1,6 @@
-doc/
+doc/*
 bin/
 .settings/
 .vscode/
-files/
+files/*
 .attach*
