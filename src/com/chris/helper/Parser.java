@@ -58,7 +58,7 @@ public class Parser {
 	 */
 	public static List<String> getLinksFromFile(File file, String hostName) throws IOException {
 		List<String> linksToReturn = new ArrayList<>();
-		Document doc = Jsoup.parse(file, "UTF-8", "");
+		Document doc = Jsoup.parse(file, "UTF-8", hostName);
 		Elements links = doc.select("a[href]");
 		String dirFound = "";
 		
