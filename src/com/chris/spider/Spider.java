@@ -56,8 +56,8 @@ public class Spider {
 	 */
 	public static void main(String... args) throws IOException {
 		// Crawl the easy pages.
-		LinkManager linkManager = new LinkManager("https://www.siliconmtn.com/");
-		urlCrawl(linkManager);
+		//LinkManager linkManager = new LinkManager("https://www.siliconmtn.com/");
+		//urlCrawl(linkManager);
 		
 		//TODO crawl admintool
 		//Crawl admintool pages
@@ -67,9 +67,10 @@ public class Spider {
 		sites.add("https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=index&actionId=SCHEDULE_JOB_INSTANCE&organizationId=BMG_SMARTTRAK");
 		sites.add("https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=index&actionId=WEB_SOCKET&organizationId=BMG_SMARTTRAK");
 		sites.add("https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=index&actionId=ERROR_LOG&organizationId=BMG_SMARTTRAK");
-		LinkManager otherLinkManager = new LinkManager("https://stage-st-stage.qa.siliconmtn.com/admintool/");
-		otherLinkManager.addLinks(sites);
-		adminCrawl(linkManager);
+		LinkManager adminLinkManager = new LinkManager("https://stage-st-stage.qa.siliconmtn.com/admintool/");
+		
+		adminLinkManager.addLinks(sites);
+		adminCrawl(adminLinkManager);
 	}
 	
 	

@@ -88,7 +88,11 @@ public class ConnectionManager {
      * Uses Post login for admintool pages
      */
     public void getAdminToolPages() {
-    	//connectSocketSecure();
+    	
+    	connectSocket();
+    	sendPost();
+    	
+    	
     	//TODO fix post method
     	//sendPost();
     }
@@ -148,13 +152,72 @@ public class ConnectionManager {
 			//TODO delete pritnln
 			System.out.println("ln 145 conman, response from pair = " + responsePair.getResponse());
 
-
 		} catch (IOException e) {
 			System.out.println("IO exception - " + e);
 			e.printStackTrace();
 		}
 
     }
+    
+
+    /**
+     * Make post request for login on secure site
+     */
+    private void sendPost(){
+    	// Pair for Response string and html file
+    	Pair responsePair = new Pair();
+    	
+    	try (PrintWriter socketWriter = new PrintWriter(
+                new BufferedWriter(
+                new OutputStreamWriter(
+                socket.getOutputStream())))){
+    		
+    		//writing params for login
+			String params = "?requestType=reqBuild&pmid=ADMIN_LOGIN";
+			params += "&emailAddress=" + PROPERTIES.getProperty("usernamme");
+			params += "&password=" + PROPERTIES.getProperty("password") + "&l=";
+
+    		
+    		while (linkMan.hasNew()) {
+    			directory = linkMan.getNextPage();
+    			
+    			socketWriter.println("POST " + directory + " HTTP/1.1");
+    	        socketWriter.println("Host: " + hostName);
+    	        socketWriter.println("content-type: application/x-www-form-urlencoded");
+    	        socketWriter.println("user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36");
+    	        socketWriter.println("Content-Length: " + params.length()); // length of message needed
+    	        
+    	        // writing params
+    	        
+    	        socketWriter.println();
+    	        socketWriter.println(params);
+    	        socketWriter.println();
+    	        // send request to page
+    	        socketWriter.flush();    
+    	        
+                socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                // get response response header and body
+            	responsePair = getResponse();
+            	
+            	cookie = Parser.getCookieFromResponse(responsePair.getResponse());
+            	linkMan.addLinks(Parser.getLinksFromFile(responsePair.getFile(), hostName));
+
+    		}
+ 
+
+			
+
+	        
+	        //socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+	        
+	    	//savePage();
+	        
+		} catch (IOException e) {
+			System.out.println("IO exception - " + e);
+			e.printStackTrace();
+		}
+    }
+    
     
     /**
      * Getting response from socket.
@@ -166,7 +229,7 @@ public class ConnectionManager {
     	String response = "";
     	String line = "";
 		//TODO delete pritnln
-		System.out.println("ln 151 conman  filedir + makefilename() = " + (FILE_DIR + "+++"+ makeFileName()));
+		System.out.println("ln 224 conman  filedir + makefilename() = " + (FILE_DIR + "+++"+ makeFileName()));
 
     	file = new File(FILE_DIR + makeFileName());
     	try (BufferedWriter out = new BufferedWriter(new FileWriter(file))){
@@ -198,7 +261,7 @@ public class ConnectionManager {
 			//System.out.println("ln 194 conman  break for end of html, response = " + response);
 			if(response.contains("JSESSIONID")) System.out.println("wtf bro****************");
 			responsePair = new Pair(response, file);
-			System.out.println("response from pair = " + responsePair.getFile().toString());
+			System.out.println("response from pair = " + responsePair.getResponse());
 			socketReader.close();
     		
 		} catch (Exception e) {
@@ -209,40 +272,7 @@ public class ConnectionManager {
     
     
     
-    //TODO fix post
-    /**
-     * Make post request for login on secure site
-     */
-//    private void sendPost(){
-//		try (PrintWriter socketWriter = new PrintWriter(socket.getOutputStream())){
-//			// writing params
-//			String params = "?requestType=reqBuild&pmid=ADMIN_LOGIN";
-//			params += "&emailAddress=" + PROPERTIES.getProperty("usernamme");
-//			params += "&password=" + PROPERTIES.getProperty("password") + "&l=";
-//
-//			socketWriter.println("POST " + directory + " HTTP/1.1");
-//	        socketWriter.println("Host: " + hostName);
-//	        socketWriter.println("content-type: application/x-www-form-urlencoded");
-//	        socketWriter.println("user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36");
-//	        socketWriter.println("Content-Length: " + params.length()); // length of message needed
-//	        
-//	        // writing params
-//	        socketWriter.println();
-//	        socketWriter.println(params);
-//	        socketWriter.println();
-//	        // send request to page
-//	        socketWriter.flush();    
-//	        
-//	        //socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//	        
-//	    	//savePage();
-//
-//		} catch (IOException e) {
-//			System.out.println("IO exception - " + e);
-//			e.printStackTrace();
-//		}
-//    }
-    
+
 	/**
 	 * Make a file name by replacing reserved characters to save in a directory.
 	 * @return
