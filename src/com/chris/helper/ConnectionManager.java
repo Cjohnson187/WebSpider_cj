@@ -9,269 +9,259 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
-import com.chris.helper.PropertiesLoader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /****************************************************************************
  * <b>Title</b>: ConnectionManager.java <b>Project</b>: WebSpider
- * <b>Description: </b> The connection manager will be used by the spider to
- * make requests to the current page and save the response to a file
- * for the parser. 
- * It should also be able to send posts with login info as well as a cookie
- * if it exists.
+ * <b>Description: </b> The connection manager goes through a list of links
+ * to connect them and request a response. It should dynamically handle a
+ * but it only crawls unsecured sites to get more sites to crawl. 
+ * For the secured sites it makes a single post request for the first secured 
+ * site and gets the cookie to search the following sites in the list but 
+ * does not search for more sites to crawl.
  * <b>Copyright:</b> Copyright (c) 2021 <b>Company:</b> Silicon Mountain
  * Technologies
  * 
  * @author Chris Johnson
- * @version 1.0
- * @since Jan 5, 2021
+ * @version 2.0
+ * @since Feb 04, 2021
  * @updates:
  ****************************************************************************/
+
 public class ConnectionManager {
+	// properties file for login
 	private static final PropertiesLoader propertiesLoader = new PropertiesLoader();
 	private static final Properties PROPERTIES = propertiesLoader.readPropFile();
+	private static final String FILE_DIR = PROPERTIES.getProperty("fileDir");
+	
     private String cookie;
-    private String link;
-    private String directory;
     private String hostName;
     private File file;
-    private final String FILE_DIR = "files/";
-    
 
-    private static SSLSocket socket;
-    BufferedReader socketReader;
-    private InetAddress address;
+    private static String directory;
+    
+    private LinkManager linkMan;
+    private SSLSocket socket;
+    private SSLSocketFactory factory;
+    private BufferedReader socketReader;
     
     /**
-     * Empty constructor since the URL will most likely be changing a few times.
+     * Building ConnectionManager with linkManager to manage pages while socket is connected
+     * @param linkMan
      */
-    public ConnectionManager(String link) {
-    	//TODO delete println
-    	this.link = link;
+    public ConnectionManager(LinkManager linkMan) {
+    	this.linkMan = linkMan;
+    	this.hostName = linkMan.getHost();
     	this.directory = "";
-    	this.hostName = getHostName();
     }
     
     /**
-     * Connect to page and save the response in a document for the parser.
-     * @return
+     * Get Basic pages and look for more to crawl
+     * @throws IOException 
      */
-    public File getPageFile() {
-    	connectSocket();
-    	sendGet();
-    	return file;
+    public void getBasic() throws IOException {
+    	factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
+    	while(linkMan.hasNew()) {
+    		directory = linkMan.getNextPage();
+    		connectSocket();
+        	sendGet();
+    	}
     }
+    
     /**
-     * Post login for admintool
-     * @return
+     * Uses post login for first admin page and gets a 
+     * cookie to search the rest.
+     * @throws IOException
      */
-    public File getSecurePageFile() {
-    	connectSocket();
-    	sendPost();
-    	return file;
+    public void getAdminToolPages() throws IOException {
+    	// setting up socket factory
+    	factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
+    	// getting the first login page with the post to get the cookie
+    	directory = linkMan.getNextPage();
+		connectSocket();
+		sendPost();
+		// list of sites to add - This should be done on the spider
+		// but the priority Q reorders the sites by smallest to largest
+		// which is a problem because im  not dynamically handling responses yet
+		List<String> sites = new ArrayList<String>();
+		sites.add("https://www.siliconmtn.com/admintool");
+		sites.add("https://www.siliconmtn.com/sb/admintool?cPage=index&actionId=FLUSH_CACHE");
+		sites.add("https://www.siliconmtn.com/sb/admintool?cPage=index&actionId=SCHEDULE_JOB_INSTANCE&organizationId=BMG_SMARTTRAK");
+		sites.add("https://www.siliconmtn.com/sb/admintool?cPage=index&actionId=WEB_SOCKET&organizationId=BMG_SMARTTRAK");
+		sites.add("https://www.siliconmtn.com/sb/admintool?cPage=index&actionId=ERROR_LOG&organizationId=BMG_SMARTTRAK");
+		linkMan.addLinks(sites);
+		connectSocket();
+		sendPost();
+		
+		// Start crwaling the remaining links now that there is a cookie.
+    	while(linkMan.hasNew()) {
+    		directory = linkMan.getNextPage();
+    		connectSocket();
+        	sendPost();
+    	}
     }
 
     /**
-     * Make connection to page and build writer / reader
+     * Make connection to page and test handshake, probably dont need the test
      */
     private void connectSocket() {
-        SSLSocketFactory factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
         try {
 			socket = (SSLSocket) factory.createSocket(hostName, 443);
-			//TODO probably dont need the handshake check
-			socket.startHandshake();
-		} catch (UnknownHostException e) {
-			System.out.println("unknown host exception - " + e);
-			e.printStackTrace();
+			socket.startHandshake(); 
 		} catch (IOException e) {
-			System.out.println("IO exception - " + e);
+			System.out.println("could not connect to socket, exception - " + e);
 			e.printStackTrace();
-		}       
+		}
     }
 
     /**
-     * Make get request for the current page
+     * Make get request for unsecured pages which does not get cookies yet.
      */
     private void sendGet(){
-    	 
+    	Pair responsePair = new Pair();
+
     	try (PrintWriter socketWriter = new PrintWriter(
                 new BufferedWriter(
                 new OutputStreamWriter(
                 socket.getOutputStream())))){
-    		//TODO clean this preintln or return it to how it was
-    		System.out.println("direc " + directory + " host " + hostName );
+    		
             socketWriter.println("GET " + directory + " HTTP/1.1");
             socketWriter.println("Host: " + hostName);
             socketWriter.println("User-Agent: Mozilla/4.0 (compatible; MSIE5.01; Windows NT");
             socketWriter.println("Accept-Language: en-us");
             socketWriter.println("Connection: Keep-Alive");
+            
             // adding carriage return
             socketWriter.println();
-            // send request
             socketWriter.flush();
             
+            // making socket reader
             socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            
-            savePage();
+            // get response response header and body
+        	responsePair = getResponse();
+        	// add new links found
+        	linkMan.addLinks(Parser.getLinksFromFile(responsePair.getFile(), hostName));
 
 		} catch (IOException e) {
 			System.out.println("IO exception - " + e);
 			e.printStackTrace();
 		}
     }
-    
+
     /**
-     * Make post request for login on secure site
+     * Make a post get depending on if a cookie exists but 
+     * needs to be dynamic check for redirects
      */
     private void sendPost(){
-		try (PrintWriter socketWriter = new PrintWriter(socket.getOutputStream())){
-			// writing params
-			// may not need req type and pmid if i use content length
-			//               ? before req
-			String params = "?requestType=reqBuild&pmid=ADMIN_LOGIN";
+    	// Pair for Response string and html file
+    	Pair responsePair = new Pair();
+    	
+    	try (PrintWriter socketWriter = new PrintWriter(
+                new BufferedWriter(
+                new OutputStreamWriter(
+                socket.getOutputStream())))){
+ 
+    		//Building params for login.
+			String params = "requestType=reqBuild&pmid=ADMIN_LOGIN";
 			params += "&emailAddress=" + PROPERTIES.getProperty("usernamme");
-			params += "&password=" + PROPERTIES.getProperty("password") + "&l=";
-			
-			System.out.println("post - " + params + " len - " + params.length() + "  " + directory + "  " + hostName );
-			// params len 102 encoded + 4  
-			socketWriter.println("POST " + directory + " HTTP/1.1");
-	        socketWriter.println("Host: " + hostName);
-	        socketWriter.println("content-type: application/x-www-form-urlencoded");
-	        socketWriter.println("user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36");
-	        socketWriter.println("Content-Length: " + params.length()); // length of message needed
-	        
-	        // writing params
-	        socketWriter.println();
-	        socketWriter.println(params);
-	        socketWriter.println();
-	        // send request to page
-	        socketWriter.flush();    
-	        
-			/*
-			 * // String params = "requestType=reqBuild&pmid=ADMIN_LOGIN"; //
-			 * params += "&emailAddress=" + PROPERTIES.getProperty("usernamme");
-			 * // params += "&password=" + PROPERTIES.getProperty("password") +
-			 * "&l="; // System.out.println("post - " + params + " len - " +
-			 * s.length() + "  " + directory + "  " + hostName ); // // params
-			 * len 102 encoded + 4 // // socketWriter.println("POST " +
-			 * directory + " HTTP/1.1"); // socketWriter.println("Host: " +
-			 * hostName); // socketWriter.
-			 * println("content-type: application/x-www-form-urlencoded"); //
-			 * socketWriter.println("accept-encoding: gzip, deflate, br"); //
-			 * socketWriter.
-			 * println("user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36"
-			 * ); // //socketWriter.println("Content-Length: 106"); // length of
-			 * message needed //
-			 * socketWriter.println("Cache-Control: no-cache"); // // writing
-			 * params // socketWriter.println(params); //
-			 * socketWriter.println(""); // // send request to page //
-			 * socketWriter.flush();
-			 */
-	        
-	        socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-	        
-	    	savePage();
+			params += "&password=" + PROPERTIES.getProperty("password") +"&l=";
 
+	    		if (cookie != null) {
+	    			socketWriter.println("GET " + directory + " HTTP/1.1");
+	    			socketWriter.println("Host: " + hostName);
+	    			socketWriter.println("Cookie: JSESSIONID=" + cookie);
+	    			socketWriter.println("User-Agent: bgold/1.2");
+	    			socketWriter.println();
+	    			socketWriter.flush();
+	    			// socket reader to get response
+	                socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+	                // get response response header and body
+	            	responsePair = getResponse();
+	            	
+	            	//TODO left this in just to make sure logins work
+	            	System.out.println("response -  " + responsePair.getResponse());
+	            	
+	            	socketReader.close();
+	    		}
+	    		// Post for first login but i need a check for redirects instead
+	    		else {
+	    			socketWriter.println("POST " + directory + " HTTP/1.1");
+	    			socketWriter.println("Host: " + hostName);
+	    			socketWriter.println("Content-Type: application/x-www-form-urlencoded");
+	    			socketWriter.println("Content-Length: " + params.length());
+	    			socketWriter.println("User-Agent: bgold/1.2");
+	    			socketWriter.println();
+	    	        // login properties
+	    			socketWriter.println(params);
+	    			socketWriter.println();
+	    			socketWriter.println();
+	    			socketWriter.flush();
+	
+	                socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+	                // get response response header and body
+	            	responsePair = getResponse();
+	            	System.out.println("response -  " + responsePair.getResponse());
+	            	cookie = Parser.getCookieFromResponse(responsePair.getResponse());
+	            	
+	            	socketReader.close();
+	    		}
 		} catch (IOException e) {
 			System.out.println("IO exception - " + e);
 			e.printStackTrace();
 		}
     }
-        
-	/**
-	 * Getting the host name of the current page.
-	 * @return
-	 */
-    public String getHostName() {
-		StringBuilder host = new StringBuilder();
-		//removing protocol
-		String newLink = link.replace("http://", "");
-		newLink = newLink.replace("https://", "");
-		//System.out.println(" +++++ " + newLink);
-		try {
-			for (int i=0; i< newLink.length(); i++) {
-				if (newLink.charAt(i) != '/') {
-					host.append(newLink.charAt(i));
-				} else break;
-			}
-			// checking for address
-			if(newLink.length() > host.length()) {
-				directory = newLink.replace(host.toString(), "");
-			}
-		} catch(NullPointerException e) {
-			System.out.println("Error getting host name. Nullpointer Exception -" + e);
-		}
-		hostName = host.toString();
-		return host.toString();
-	}
     
     /**
-     * Save the page including response to a file for the parser.
+     * Getting response from socket.
      */
-    private void savePage() {
-		file = new File(FILE_DIR + makeFileName());
-		String line="";
-		
-		try ( BufferedWriter out = new BufferedWriter(new FileWriter(file)) ){
-		
-			while((line = socketReader.readLine()) != null) {
-				//TODO delete println
-				//System.out.println(line.toString());
-				out.write(line);
-				// breaking at and of html page because the reader would no stop
-				if(line.contains("</html>")) {
-					break;
-				}
+    private Pair getResponse() {
+    	// Making a pair from the string response and File to parse later
+    	Pair responsePair = new Pair();
+    	String response = "";
+    	String line = "";
+
+    	file = new File(FILE_DIR + makeFileName());
+    	
+    	try (BufferedWriter out = new BufferedWriter(new FileWriter(file))){
+
+    		// Using this boolean to split response and html.
+			boolean isResponse = true;
+			boolean redirect  = false;
+			while ((line = socketReader.readLine()) != null) {
+				// need a better check to know if redirect
+				if (line.toString().contains("HTTP/1.1 302")) redirect = true;
+				// save response to string
+				if (isResponse) response += line;
+				// Response finished starting to read html
+				if (line.toString().contains("<!DOCTYPE html>")) isResponse = false;
+				// writing page to file
+				if(redirect && line.contains("Location: /admintool")) break;
+				if(!isResponse) out.write(line);
+				//breaking here because my reader wasn't closing
+				if (line.toString().contains("</html>")) break;
 			}
 			socketReader.close();
-		} catch (IOException e) {
-			System.out.println("Error reading from socket input stream, exception - " + e);
-			e.printStackTrace();
+			responsePair = new Pair(response, file);
+			
+		} catch (Exception e) {
+			System.out.println("Could not read response Exception  e - " + e);
 		}
-	}
-		
-	
+    	// need check in case its empty
+    	return responsePair;
+    }
+    
 	/**
 	 * Make a file name by replacing reserved characters to save in a directory.
 	 * @return
 	 */
-	private String makeFileName() {
-		return link.replaceAll("/", "_").replaceAll(":", "-");
-	}
- 
-    /**
-     * Method to check if we have an existing cookie.
-     * @return
-     */
-    private boolean checkForCookie() {
-        if (cookie != null) return true;  
-        return false;
-    }
-
-    /**
-     * saving cookie in connnectionManager
-     * @param newCookie
-     */
-    public void saveCookie(String newCookie) {
-        this.cookie = newCookie;
-    }
-    
-    /**
-     * Getting Cookie for file writer.
-     * @return
-     */
-    public String getCookie() {
-        return cookie;
-    }
-    
-    // Close readers G*$#@M%&*!!!!!
-
+	private static String makeFileName() {
+		return directory.replaceAll("/", "_").replaceAll(":", "-");
+	} 
 }
+
+

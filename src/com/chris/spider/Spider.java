@@ -1,98 +1,70 @@
 package com.chris.spider;
 
-import java.io.File;
 import java.io.IOException;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 
 import com.chris.helper.ConnectionManager;
 import com.chris.helper.LinkManager;
-import com.chris.helper.Parser;
-
 
 /****************************************************************************
  * <b>Title</b>: Spider.java
  * <b>Project</b>: WebSpider
- * <b>Description: </b> This is the main runner for the Web Spider. It will have
- * a list of base pages to read and hold other pages found in order. THe connection
- * manager will connect to a given page and if the response is ok it will
- * pass the buffered reader to the parser to write the page and the link manager 
- * will save the read page and continue with the next new page.
+ * <b>Description: </b> The spider jsut initializes the ConnectionManager
+ * and LinkManager to start the parse process for each 
+ * 
+ * -- could fix this by sorting the links differently and handling
+ * responses dynamically.
+ * 
  * <b>Copyright:</b> Copyright (c) 2020
  * <b>Company:</b> Silicon Mountain Technologies
  * 
  * @author Chris Johnson
- * @version 1.0
- * @since Jan 5, 2021
+ * @version 2.0
+ * @since Feb 4, 2021
  * @updates:
  ****************************************************************************/
 
-
 public class Spider {
-	
-	private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("https://www.siliconmtn.com/"));
-	//private static List<String> sitesToSearch = new ArrayList<>(Arrays.asList("www.siliconmtn.com", "stage-st-stage.qa.siliconmtn.com/admintool"));
-	private static List<String> adminToolSitesToSearch = new ArrayList<>(Arrays.asList("https://stage-st-stage.qa.siliconmtn.com/admintool"));																					
-	
-	private static LinkManager linkManager;
-	private static ConnectionManager connectMan;
-	
-	
-	
+		
 	/**
-	 * Crawl the unsecured sites
+	 * Crawl the siliconmtn.com sites and find new links to parse.
+	 * @param linkMan
 	 * @throws IOException
 	 */
-	public static void urlCrawl() throws IOException {
-		
-		while(linkManager.hasNew()){
-			connectMan = new ConnectionManager(linkManager.getNextPage());
-		
-			Parser parser = new Parser(connectMan.getPageFile(), connectMan.getHostName());
-			parser.parsePage();
-			
-			if(parser.getLinksFound() != null) {
-				linkManager.addLink(parser.getLinksFound(), connectMan.getHostName());
-			}
-		}
+	public static void urlCrawl(LinkManager linkMan) throws IOException {
+		// initialize ConnectionManager with LinkManager that has a starting site
+		// which will find new links
+		ConnectionManager connectMan = new ConnectionManager(linkMan);
+		connectMan.getBasic();
 	}
 	
 	/**
-	 * Crawl the secure sites
+	 * Crawl the secure sites that need a login/cookie
+	 * @param linkMan
 	 * @throws IOException
 	 */
-	public static void adminCrawl() throws IOException {
-		connectMan = new ConnectionManager(linkManager.getNextPage());
-		//TODO delete println
-		System.out.println("pageFile and hostName " + connectMan.getSecurePageFile()+ " " + connectMan.getHostName());
-		connectMan.getSecurePageFile();
-		//Parser parser = new Parser(connectMan.getSecurePageFile(), connectMan.getHostName());
-		//parser.parsePage();
-		
+	public static void adminCrawl(LinkManager linkMan) throws IOException {
+		// initialize ConnectionManager with LinkManager that has a starting site.
+		ConnectionManager connectMan = new ConnectionManager(linkMan);
+		// crawl "https://www.siliconmtn.com/sb/admintool/* sites
+		// not  finding new links
+		connectMan.getAdminToolPages();
 	}
 
 
 	/**
-	 * The main will be used to add the initial links and crawl the 
-	 * regular pages and the secure pages.
+	 * The main is being used to separate each process.
 	 * @param args
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public static void main(String... args) throws IOException {
-		linkManager = new LinkManager();
-		
-		// add base links to link manager
-		linkManager.addLink(sitesToSearch);	
-		//linkManager.addLink(adminToolSitesToSearch);
-		
-		urlCrawl();
-		//adminCrawl();
-	
+		// Crawl the easy pages.
+		LinkManager linkManager = new LinkManager("https://www.siliconmtn.com/");
+		urlCrawl(linkManager);
+
+		// Crawl admintool pages the need cookie/login
+		LinkManager adminLinkManager = new LinkManager("https://www.siliconmtn.com/sb/admintool");
+		adminCrawl(adminLinkManager);
 	}
-	
-	
-	
 }

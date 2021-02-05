@@ -14,112 +14,73 @@ import org.jsoup.select.Elements;
 /****************************************************************************
  * <b>Title</b>: Parser.java
  * <b>Project</b>: WebSpider
- * <b>Description: </b> The parser will recieve a file from the connection
- * manager and return a list of links found.
+ * <b>Description: </b> The parser is just used to parse a file for links or 
+ * a string for the jsessionID.
+
  * <b>Copyright:</b> Copyright (c) 2020
  * <b>Company:</b> Silicon Mountain Technologies
  * 
  * @author Chris Johnson
- * @version 1.0
- * @since Jan 5, 2021
+ * @version 2.0
+ * @since Feb 4, 2021
  * @updates:
  ****************************************************************************/
 
 public class Parser {
 	
-	private String hostName;
-	private File file;
-	private List<String> linksToReturn;
-	
-	
 	/**
-	 * Creating a parser and initializing a file and host 
-	 * name that was passed
-	 * @param file
-	 * @param pageUri
+	 * Empty constructor.
 	 */
-	public Parser(File file, String hostName) {
-		linksToReturn = new ArrayList<String>();
-		this.file = file;
-		this.hostName = hostName;
+	public Parser() {
 	}
 	
 	/**
-	 * Return links found by the parser.
+	 * Method to parse a response String and get JsessionID
+	 * @param response
 	 * @return
 	 */
-	public List<String> getLinksFound(){
+	public static String getCookieFromResponse(String response) {
+		// getting just jsessionID
+		if(response.contains("JSESSIONID")) {
+			response = response.substring(response.indexOf("JSESSIONID"));
+			response = response.substring(11, response.indexOf(";"));	
+			return response;
+		}
+		return "";
+	}
+	
+	/**
+	 * Parse the text file and search for more sites to add to the link manager.
+	 * The host name is used to build full URLs but it is not necessary because im
+	 * splitting them later.
+	 * @param file
+	 * @param hostName
+	 * @return
+	 * @throws IOException
+	 */
+
+	public static List<String> getLinksFromFile(File file, String hostName) throws IOException {
+		List<String> linksToReturn = new ArrayList<>();
+		Document doc = Jsoup.parse(file, "UTF-8", hostName);
+		Elements links = doc.select("a[href]");
+		String dirFound = "";
+		
+		for(Element link: links) {
+			dirFound = extractLink(link.toString());
+			if(dirFound.length() > 1 && dirFound.charAt(0) == '/') {
+				linksToReturn.add(dirFound);
+			}
+		}
 		return linksToReturn;
 	}
 	
 	/**
-	 * Parse the text file for the current site.
-	 * @param socketStream
-	 * @throws IOException 
-	 */
-	public void parsePage() throws IOException {
-		System.out.println("file " +file.toString() );
-		Document doc = Jsoup.parse(file, "UTF-8", hostName);
-		Elements links = doc.select("a[href]");
-		String linkFound = "";
-		
-		for(Element link: links) {
-			linkFound = extractLink(link.toString());
-			//TODO delete println
-			System.out.println("link found" + linkFound);
-			if(linkFound.length() > 1 && linkFound.charAt(0) == '/') {
-				linksToReturn.add(getHostName() + linkFound);
-			}
-		}
-		//TODO do something with jsession id
-		Elements response = doc.select("JSESSIONID");
-		//TODO delete println
-		System.out.println("jsessionID" + response.toString());
-	}
-	
-	/**
-	 * Get substring that is 
+	 * Get substring that is the link
 	 * @param line
 	 * @return
 	 */
-	public String extractLink(String line) {
-		StringBuilder linkFound = new StringBuilder();
-		boolean link = false;
-		for(int i=0; i< line.length(); i++) {
-			if(line.charAt(i) == '"' && link == false) {
-				link = true;
-				continue;
-			} else if(line.charAt(i) == '"' && link == true) {
-				break;
-			}
-			if (link == true) {
-				linkFound.append(line.charAt(i));
-			}
-		}
-		return linkFound.toString();
+	private static String extractLink(String line) {
+		line = line.substring(line.indexOf('"')+1);
+		return line.substring( 0, line.indexOf('"'));
 	}
-	
-	/**
-	 * Getting the host name of the current page.
-	 * @return
-	 */
-    private String getHostName() {
-		StringBuilder host = new StringBuilder();
-		try {
-			for (int i=0; i< hostName.length(); i++) {
-				if (hostName.charAt(i) != '/') {
-					host.append(hostName.charAt(i));
-				} else break;
-			}
-		} catch(NullPointerException e) {
-			System.out.println("Error getting host name. Nullpointer Exception -" + e);
-		}
-		return host.toString();
-	}
-
-
-
-
-	
-	
 }
