@@ -39,6 +39,7 @@ public class ConnectionManager {
 	
     private String cookie;
     private String hostName;
+    private File file;
 
     private static String directory;
     
@@ -66,9 +67,11 @@ public class ConnectionManager {
      */
     public void getBasic() throws IOException {
 
-    	connectSocket();
+    	
     	while(linkMan.hasNew()) {
+    		
     		directory = linkMan.getNextPage();
+    		connectSocket();
     		//TODO delete pritnln
     		System.out.println("ln 93 conman directory = " + directory);
 
@@ -76,7 +79,7 @@ public class ConnectionManager {
         	// Getting String(header) and File(html) to parse with jsoup.
         	
         	//TODO break for now just to test
-        	break;
+        
     	}
     	//sendGet();
     }
@@ -156,7 +159,7 @@ public class ConnectionManager {
     /**
      * Getting response from socket.
      */
-    private static Pair getResponse() {
+    private Pair getResponse() {
     	// Making a pair from the string response and File to parse later
     	
     	Pair responsePair = new Pair();
@@ -165,7 +168,7 @@ public class ConnectionManager {
 		//TODO delete pritnln
 		System.out.println("ln 151 conman  filedir + makefilename() = " + (FILE_DIR + "+++"+ makeFileName()));
 
-    	File file = new File(FILE_DIR + makeFileName());
+    	file = new File(FILE_DIR + makeFileName());
     	try (BufferedWriter out = new BufferedWriter(new FileWriter(file))){
     		System.out.println("i++s it doing anything?");
     		// Using this boolean to split response and html.

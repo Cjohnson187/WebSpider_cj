@@ -70,22 +70,26 @@ public class LinkManager {
 	}
 	
 	/**
-	 * Add a list of links to q if not in set that stores visited sites
-	 * @param link
+	 * Adding directories pulled from urls if they have not been added/visited
+	 * @param urls
 	 */
-	public void addLinks(List<String> dirs) {
+	public void addLinks(List<String> urls) {
 		try {
-			for (String dir: dirs) {
+			String dir = "";
+			for (String url: urls) {
 				//TODO delete pritnln
-				System.out.println("ln 80 linkman, dir = " + dir);
-
-				// add link to q if not in set that indicates sites visited
-				if(!visited.contains(host+dir) && !priority.contains(dir)) {
-					//TODO delete pritnln
-					System.out.println("ln 85 conman, adding dir = " + dir);
-
-					priority.add(dir);
+				//System.out.println("ln 80 linkman, dir = " + dir);
+				url = url.replace("http://", "");
+				url = url.replace("https://", "");
+				if(url.contains("/")) {
+					dir = url.substring(url.indexOf("/"));
+					if(!visited.contains(dir) && !priority.contains(dir)) {
+						//TODO delete pritnln
+						System.out.println("ln 85 conman, adding dir = " + dir);
+						priority.add(dir);
+					}
 				}
+				// add link to q if not in set that indicates sites visited
 			}
 		}
 		catch (NullPointerException e) {

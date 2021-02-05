@@ -1,6 +1,8 @@
 package com.chris.spider;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.chris.helper.ConnectionManager;
 import com.chris.helper.LinkManager;
@@ -58,9 +60,16 @@ public class Spider {
 		urlCrawl(linkManager);
 		
 		//TODO crawl admintool
-		// Crawl admintool pages
-		//LinkManager otherLinkManager = new LinkManager("https://stage-st-stage.qa.siliconmtn.com/admintool/");
-		//adminCrawl(linkManager);
+		//Crawl admintool pages
+		List<String> sites = new ArrayList<String>();
+		sites.add("https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=index&actionId=FLUSH_CACHE");
+		sites.add("https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=stats&actionId=FLUSH_CACHE");
+		sites.add("https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=index&actionId=SCHEDULE_JOB_INSTANCE&organizationId=BMG_SMARTTRAK");
+		sites.add("https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=index&actionId=WEB_SOCKET&organizationId=BMG_SMARTTRAK");
+		sites.add("https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=index&actionId=ERROR_LOG&organizationId=BMG_SMARTTRAK");
+		LinkManager otherLinkManager = new LinkManager("https://stage-st-stage.qa.siliconmtn.com/admintool/");
+		otherLinkManager.addLinks(sites);
+		adminCrawl(linkManager);
 	}
 	
 	
