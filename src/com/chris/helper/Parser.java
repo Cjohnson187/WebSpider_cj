@@ -14,14 +14,14 @@ import org.jsoup.select.Elements;
 /****************************************************************************
  * <b>Title</b>: Parser.java
  * <b>Project</b>: WebSpider
- * <b>Description: </b> The parser will recieve a file from the connection
- * manager and return a list of links found.
+ * <b>Description: </b> T
+ * 
  * <b>Copyright:</b> Copyright (c) 2020
  * <b>Company:</b> Silicon Mountain Technologies
  * 
  * @author Chris Johnson
- * @version 1.0
- * @since Jan 5, 2021
+ * @version 2.0
+ * @since Feb 4, 2021
  * @updates:
  ****************************************************************************/
 
@@ -58,19 +58,13 @@ public class Parser {
 	 */
 	public static List<String> getLinksFromFile(File file, String hostName) throws IOException {
 		List<String> linksToReturn = new ArrayList<>();
-		//System.out.println("file = " + file.toString());
 		Document doc = Jsoup.parse(file, "UTF-8", hostName);
 		Elements links = doc.select("a[href]");
 		String dirFound = "";
 		
 		for(Element link: links) {
 			dirFound = extractLink(link.toString());
-			//System.out.println("lin 68 parser, link found = " + dirFound);
-			//TODO delete println
-			//System.out.println("lin 65 parser, link found = " + dirFound);
-			
 			if(dirFound.length() > 1 && dirFound.charAt(0) == '/') {
-				//System.out.println("lin 68 parser, link found = " + dirFound);
 				linksToReturn.add(dirFound);
 			}
 		}

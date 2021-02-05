@@ -31,7 +31,6 @@ public class Spider {
 	public static void urlCrawl(LinkManager linkMan) throws IOException {
 		// initialize ConnectionManager with LinkManager.
 		ConnectionManager connectMan = new ConnectionManager(linkMan);
-		// crawl "https://www.siliconmtn.com/" and link found 
 		connectMan.getBasic();
 	}
 	
@@ -59,15 +58,14 @@ public class Spider {
 		//LinkManager linkManager = new LinkManager("https://www.siliconmtn.com/");
 		//urlCrawl(linkManager);
 		
-		//TODO crawl admintool
-		//Crawl admintool pages
+
 		List<String> sites = new ArrayList<String>();
 		sites.add("https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=index&actionId=FLUSH_CACHE");
 		sites.add("https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=stats&actionId=FLUSH_CACHE");
 		sites.add("https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=index&actionId=SCHEDULE_JOB_INSTANCE&organizationId=BMG_SMARTTRAK");
 		sites.add("https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=index&actionId=WEB_SOCKET&organizationId=BMG_SMARTTRAK");
 		sites.add("https://stage-st-stage.qa.siliconmtn.com/sb/admintool?cPage=index&actionId=ERROR_LOG&organizationId=BMG_SMARTTRAK");
-		LinkManager adminLinkManager = new LinkManager("https://stage-st-stage.qa.siliconmtn.com/admintool/");
+		LinkManager adminLinkManager = new LinkManager("https://stage-st-stage.qa.siliconmtn.com/admintool");
 		
 		adminLinkManager.addLinks(sites);
 		adminCrawl(adminLinkManager);

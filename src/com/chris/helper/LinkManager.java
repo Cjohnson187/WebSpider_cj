@@ -9,15 +9,14 @@ import java.util.List;
 /****************************************************************************
  * <b>Title</b>: LinkManager.java
  * <b>Project</b>: WebSpider
- * <b>Description: </b> The Link manager class is going to receive links and
- * save them for the  spider. It will also check for new links 
- * and send the new ones to the spider.
+ * <b>Description: </b> 
+ * 
  * <b>Copyright:</b> Copyright (c) 2021
  * <b>Company:</b> Silicon Mountain Technologies
  * 
  * @author Chris Johnson
- * @version 1.0
- * @since Jan 5, 2021
+ * @version 2.0
+ * @since Feb 4, 2021
  * @updates:
  ****************************************************************************/
 
@@ -46,8 +45,6 @@ public class LinkManager {
 		// initialize q and add starting site
 		priority = new PriorityQueue<String>();
 		setHostName(site);
-		//TODO delete pritnln
-		System.out.println("ln 50 linkman, host = " + host + "  priority =" + priority.toString() + "  visited= " + visited.toString());
 	}	
 	
 	/**
@@ -63,10 +60,7 @@ public class LinkManager {
 			dir  = url.substring(url.indexOf("/"));
 			priority.add(dir);
 		}
-		host = url.substring(0, url.indexOf("/"));
-		
-		//TODO delete pritnln
-		System.out.println( "ln 69, link man host" + host + "   dir = " + dir);
+		host = url.substring(0, url.indexOf("/"));	
 	}
 	
 	/**
@@ -84,8 +78,6 @@ public class LinkManager {
 				if(url.contains("/")) {
 					dir = url.substring(url.indexOf("/"));
 					if(!visited.contains(dir) && !priority.contains(dir)) {
-						//TODO delete pritnln
-						System.out.println("ln 85 conman, adding dir = " + dir);
 						priority.add(dir);
 					}
 				}
