@@ -42,9 +42,13 @@ public class Parser {
 	 * @return
 	 */
 	public static String getCookieFromResponse(String response) {
-		// making document from response for Jsoup to parse
-		Document doc = Jsoup.parse(response);
-		return doc.select("JSESSIONID").toString();
+		// getting jsessionid
+		if(response.contains("JSESSIONID")) {
+			response = response.substring(response.indexOf("JSESSIONID"));
+			response = response.substring(11, response.indexOf(";"));	
+			return response;
+		}
+		return "";
 	}
 	
 	/**
@@ -54,17 +58,18 @@ public class Parser {
 	 */
 	public static List<String> getLinksFromFile(File file, String hostName) throws IOException {
 		List<String> linksToReturn = new ArrayList<>();
-		Document doc = Jsoup.parse(file, "UTF-8", hostName);
+		Document doc = Jsoup.parse(file, "UTF-8", "");
 		Elements links = doc.select("a[href]");
 		String dirFound = "";
 		
 		for(Element link: links) {
 			dirFound = extractLink(link.toString());
-			
+			System.out.println("lin 68 parser, link found = " + dirFound);
 			//TODO delete println
-			System.out.println("lin 65 parser, link found = " + dirFound);
+			//System.out.println("lin 65 parser, link found = " + dirFound);
 			
 			if(dirFound.length() > 1 && dirFound.charAt(0) == '/') {
+				System.out.println("lin 68 parser, link found = " + dirFound);
 				linksToReturn.add(dirFound);
 			}
 		}

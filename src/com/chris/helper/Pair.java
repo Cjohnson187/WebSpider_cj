@@ -18,8 +18,8 @@ public class Pair {
 	 * @param key
 	 * @param file
 	 */
-	public Pair(String key, File file) {
-		this.response = key;
+	public Pair(String response, File file) {
+		this.response = response;
 		this.file = file;
 	}
 	

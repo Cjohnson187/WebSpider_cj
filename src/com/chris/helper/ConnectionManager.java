@@ -62,9 +62,22 @@ public class ConnectionManager {
     
     /**
      * Get Basic pages
+     * @throws IOException 
      */
-    public void getBasic() {
+    public void getBasic() throws IOException {
+
     	connectSocket();
+    	while(linkMan.hasNew()) {
+    		directory = linkMan.getNextPage();
+    		//TODO delete pritnln
+    		System.out.println("ln 93 conman directory = " + directory);
+
+        	sendGet();
+        	// Getting String(header) and File(html) to parse with jsoup.
+        	
+        	//TODO break for now just to test
+        	break;
+    	}
     	//sendGet();
     }
     
@@ -81,30 +94,15 @@ public class ConnectionManager {
      * Make connection to page and build writer / reader
      */
     private void connectSocket() {
-    	Pair responsePair = new Pair();
+
         SSLSocketFactory factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
         try {
         	socket = (SSLSocket) factory.createSocket(hostName, 443);
     		//TODO delete pritnln
-    		System.out.println("ln 87 con man hostnam = " + hostName);
+    		System.out.println("ln 87 con man hostname = " + hostName);
 
         	socket.startHandshake();
-        	while(linkMan.hasNew()) {
-        		directory = linkMan.getNextPage();
-        		//TODO delete pritnln
-        		System.out.println("ln 93 conman directory = " + directory);
 
-            	sendGet();
-            	// Getting String(header) and File(html) to parse with jsoup.
-            	responsePair = getResponse();
-            	cookie = Parser.getCookieFromResponse(responsePair.getResponse());
-            	linkMan.addLinks(Parser.getLinksFromFile(responsePair.getFile(), hostName));
-				//TODO delete pritnln
-				System.out.println("ln 103 conman, cookie = " + cookie);
-            	
-            	//TODO break for now just to test
-            	break;
-        	}
 		} catch (UnknownHostException e) {
 			System.out.println("unknown host exception - " + e);
 			e.printStackTrace();
@@ -124,6 +122,7 @@ public class ConnectionManager {
                 new OutputStreamWriter(
                 socket.getOutputStream())))){
     		//TODO delete pritnln
+        	Pair responsePair = new Pair();
     		System.out.println("ln 124 conman directory = " + directory + "  hostname = " + hostName);
 
             socketWriter.println("GET " + directory + " HTTP/1.1");
@@ -138,6 +137,14 @@ public class ConnectionManager {
             
             // making socket reader
             socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            // get response response header and body
+        	responsePair = getResponse();
+        	
+        	cookie = Parser.getCookieFromResponse(responsePair.getResponse());
+        	linkMan.addLinks(Parser.getLinksFromFile(responsePair.getFile(), hostName));
+			//TODO delete pritnln
+			System.out.println("ln 145 conman, response from pair = " + responsePair.getResponse());
+
 
 		} catch (IOException e) {
 			System.out.println("IO exception - " + e);
@@ -154,40 +161,42 @@ public class ConnectionManager {
     	
     	Pair responsePair = new Pair();
     	String response = "";
+    	String line = "";
 		//TODO delete pritnln
 		System.out.println("ln 151 conman  filedir + makefilename() = " + (FILE_DIR + "+++"+ makeFileName()));
 
     	File file = new File(FILE_DIR + makeFileName());
     	try (BufferedWriter out = new BufferedWriter(new FileWriter(file))){
-    		String line = "";
+    		System.out.println("i++s it doing anything?");
     		// Using this boolean to split response and html.
 			boolean isResponse = true;
 			while ((line = socketReader.readLine()) != null) {
-				if (isResponse) {
-					// Concatenating response.
-					response += line;
+				//System.out.println("is it doing anything?");
+				//System.out.println("line = "+ line.toString());
+				if (isResponse == true) response += line.toString();
 					
 					//TODO delete println
-					System.out.println("Response line - " + line);
-				}
+					
+				
 				// Response finished starting to read html
-				if (line.contains("<html>")) isResponse = false;
+				if (line.toString().contains("<!DOCTYPE html>")) isResponse = false;
 				//TODO delete pritnln
-				System.out.println("ln 170 conman  stopped reading response, starting html to file");
+				//System.out.println("ln 170 conman  stopped reading response, starting html to file");
 				
 				// writing page to file
 				if(!isResponse) out.write(line);
 				
 				//breaking here because my reader wasn't closing
-				if (line.contains("</html>")) {
-					socketReader.close();
-					break;
-				}
-				
-				//TODO delete pritnln
-				System.out.println("ln 178 conman  break for end of html, response = " + response);
+				if (line.toString().contains("</html>")) break;
+
 			}
+			
+			//TODO delete pritnln
+			//System.out.println("ln 194 conman  break for end of html, response = " + response);
+			if(response.contains("JSESSIONID")) System.out.println("wtf bro****************");
 			responsePair = new Pair(response, file);
+			System.out.println("response from pair = " + responsePair.getFile().toString());
+			socketReader.close();
     		
 		} catch (Exception e) {
 			System.out.println("Could not read response Exception  e - " + e);
