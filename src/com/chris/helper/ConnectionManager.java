@@ -224,7 +224,7 @@ public class ConnectionManager {
 		
 			while((line = socketReader.readLine()) != null) {
 				//TODO delete println
-				System.out.println(line.toString());
+				//System.out.println(line.toString());
 				out.write(line);
 				// breaking at and of html page because the reader would no stop
 				if(line.contains("</html>")) {

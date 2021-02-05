@@ -85,11 +85,11 @@ public class Spider {
 		linkManager = new LinkManager();
 		
 		// add base links to link manager
-		//linkManager.addLink(sitesToSearch);	
-		linkManager.addLink(adminToolSitesToSearch);
+		linkManager.addLink(sitesToSearch);	
+		//linkManager.addLink(adminToolSitesToSearch);
 		
-		//urlCrawl();
-		adminCrawl();
+		urlCrawl();
+		//adminCrawl();
 	
 	}
 	

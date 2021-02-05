@@ -58,6 +58,7 @@ public class Parser {
 	 * @throws IOException 
 	 */
 	public void parsePage() throws IOException {
+		System.out.println("file " +file.toString() );
 		Document doc = Jsoup.parse(file, "UTF-8", hostName);
 		Elements links = doc.select("a[href]");
 		String linkFound = "";
