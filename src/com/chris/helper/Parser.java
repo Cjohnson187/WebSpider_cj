@@ -14,8 +14,9 @@ import org.jsoup.select.Elements;
 /****************************************************************************
  * <b>Title</b>: Parser.java
  * <b>Project</b>: WebSpider
- * <b>Description: </b> T
- * 
+ * <b>Description: </b> The parser is just used to parse a file for links or 
+ * a string for the jsessionID.
+
  * <b>Copyright:</b> Copyright (c) 2020
  * <b>Company:</b> Silicon Mountain Technologies
  * 
@@ -29,20 +30,17 @@ public class Parser {
 	
 	/**
 	 * Empty constructor.
-	 * @param file
-	 * @param pageUri
 	 */
 	public Parser() {
-
 	}
 	
 	/**
-	 * Method to parse a response and get JsessionID
+	 * Method to parse a response String and get JsessionID
 	 * @param response
 	 * @return
 	 */
 	public static String getCookieFromResponse(String response) {
-		// getting jsessionid
+		// getting just jsessionID
 		if(response.contains("JSESSIONID")) {
 			response = response.substring(response.indexOf("JSESSIONID"));
 			response = response.substring(11, response.indexOf(";"));	
@@ -52,9 +50,13 @@ public class Parser {
 	}
 	
 	/**
-	 * Parse the text file for the current site.
-	 * @param socketStream
-	 * @throws IOException 
+	 * Parse the text file and search for more sites to add to the link manager.
+	 * The host name is used to build full URLs but it is not necessary because im
+	 * splitting them later.
+	 * @param file
+	 * @param hostName
+	 * @return
+	 * @throws IOException
 	 */
 	public static List<String> getLinksFromFile(File file, String hostName) throws IOException {
 		List<String> linksToReturn = new ArrayList<>();
@@ -80,5 +82,4 @@ public class Parser {
 		line = line.substring(line.indexOf('"')+1);
 		return line.substring( 0, line.indexOf('"'));
 	}
-	
 }

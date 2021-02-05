@@ -9,8 +9,8 @@ import java.util.List;
 /****************************************************************************
  * <b>Title</b>: LinkManager.java
  * <b>Project</b>: WebSpider
- * <b>Description: </b> 
- * 
+ * <b>Description: </b> The link manager stores the pages that have been 
+ * visited and stores the new sites in a priority Q.
  * <b>Copyright:</b> Copyright (c) 2021
  * <b>Company:</b> Silicon Mountain Technologies
  * 
@@ -24,10 +24,10 @@ public class LinkManager {
 
 	private static Set<String> visited;
 	private static Queue<String> priority;
-	private static String host;
+	private String host;
 
 	/**
-	 * basic constructor
+	 *Basic constructor
 	 */
 	public LinkManager() {
 		// initialize set and q
@@ -36,7 +36,7 @@ public class LinkManager {
 	}
 
 	/**
-	 * overloaded constructor that builds linkManager with starting page
+	 * Overloaded constructor that builds linkManager with starting page.
 	 * @param site
 	 */
 	public LinkManager(String site) {
@@ -69,23 +69,21 @@ public class LinkManager {
 	 */
 	public void addLinks(List<String> urls) {
 		try {
-			String dir = "";
+			String index = "";
 			for (String url: urls) {
-				//TODO delete pritnln
-				//System.out.println("ln 80 linkman, dir = " + dir);
 				url = url.replace("http://", "");
 				url = url.replace("https://", "");
 				if(url.contains("/")) {
-					dir = url.substring(url.indexOf("/"));
-					if(!visited.contains(dir) && !priority.contains(dir)) {
-						priority.add(dir);
+					index = url.substring(url.indexOf("/"));
+					// add link to q if not in set that indicates sites visited
+					if(!visited.contains(index) && !priority.contains(index)) {
+						priority.add(index);
 					}
-				}
-				// add link to q if not in set that indicates sites visited
+				}	
 			}
 		}
 		catch (NullPointerException e) {
-			System.out.println("No links found sssooooorrrrryyyyyy.....");
+			System.out.println("No links found.");
 		}
 	}
 	
@@ -98,7 +96,7 @@ public class LinkManager {
 	}
 
 	/**
-	 * Getting next page in queu and adding it to the set of pages visited.
+	 * Getting next page in Q and adding it to the set of pages visited.
 	 */
 	public String getNextPage() {
 		try {
@@ -115,13 +113,9 @@ public class LinkManager {
 
 	/**
 	 * Checking if the q is empty.
-	 * which it could be if i didnt initialize with a value.
 	 * @return
 	 */
 	public boolean hasNew(){
-		if (!priority.isEmpty()){
-			return true;
-		}
-		return false;
+		return !priority.isEmpty();
 	}
 }

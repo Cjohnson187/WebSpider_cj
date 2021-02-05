@@ -8,11 +8,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.net.Socket;
-import java.net.URLEncoder;
-import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 
+import java.net.UnknownHostException;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
@@ -22,11 +19,12 @@ import java.util.Properties;
 
 /****************************************************************************
  * <b>Title</b>: ConnectionManager.java <b>Project</b>: WebSpider
- * <b>Description: </b> The connection manager will be used by the spider to
- * make requests to the current page and save the response to a file
- * for the parser. 
- * It should also be able to send posts with login info as well as a cookie
- * if it exists.
+ * <b>Description: </b> The connection manager goes through a list of links
+ * to connect them and request a response. It should dynamically handle a
+ * but it only crawls unsecured sites to get more sites to crawl. 
+ * For the secured sites it makes a single post request for the first secured 
+ * site and gets the cookie to search the following sites in the list but 
+ * does not search for more sites to crawl.
  * <b>Copyright:</b> Copyright (c) 2021 <b>Company:</b> Silicon Mountain
  * Technologies
  * 
@@ -60,12 +58,11 @@ public class ConnectionManager {
     public ConnectionManager(LinkManager linkMan) {
     	this.linkMan = linkMan;
     	this.hostName = linkMan.getHost();
-    	// I dont think i need this
     	this.directory = "";
     }
     
     /**
-     * Get Basic pages
+     * Get Basic pages and look for more to crawl
      * @throws IOException 
      */
     public void getBasic() throws IOException {
@@ -78,17 +75,20 @@ public class ConnectionManager {
     }
     
     /**
-     * Uses Post login for admintool pages
-     * @throws IOException 
+     * Uses post login for first admin page and gets a 
+     * cookie to search the rest.
+     * @throws IOException
      */
     public void getAdminToolPages() throws IOException {
     	// setting up socket factory
     	factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
-    	// getting the first login page with the post
+    	// getting the first login page with the post to get the cookie
     	directory = linkMan.getNextPage();
 		connectSocket();
 		sendPost();
-
+		// list of sites to add - This should be done on the spider
+		// but the priority Q reorders the sites by smallest to largest
+		// which is a problem because im  not dynamically handling responses yet
 		List<String> sites = new ArrayList<String>();
 		sites.add("https://www.siliconmtn.com/admintool");
 		sites.add("https://www.siliconmtn.com/sb/admintool?cPage=index&actionId=FLUSH_CACHE");
@@ -98,33 +98,30 @@ public class ConnectionManager {
 		linkMan.addLinks(sites);
 		connectSocket();
 		sendPost();
-
+		
+		// Start crwaling the remaining links now that there is a cookie.
     	while(linkMan.hasNew()) {
     		directory = linkMan.getNextPage();
-    		System.out.println("next  = " + directory);
     		connectSocket();
         	sendPost();
     	}
     }
 
     /**
-     * Make connection to page and build writer / reader
-     * @throws IOException 
-     * @throws UnknownHostException 
+     * Make connection to page and test handshake, probably dont need the test
      */
     private void connectSocket() {
         try {
 			socket = (SSLSocket) factory.createSocket(hostName, 443);
 			socket.startHandshake(); 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.out.println("could not connect to socket, exception - " + e);
 			e.printStackTrace();
 		}
-             
     }
 
     /**
-     * Make get request for the current page
+     * Make get request for unsecured pages which does not get cookies yet.
      */
     private void sendGet(){
     	Pair responsePair = new Pair();
@@ -140,16 +137,16 @@ public class ConnectionManager {
             
             socketWriter.println("Accept-Language: en-us");
             socketWriter.println("Connection: Keep-Alive");
+            
             // adding carriage return
             socketWriter.println();
-            // send request
             socketWriter.flush();
             
             // making socket reader
             socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             // get response response header and body
         	responsePair = getResponse();
-        	
+        	// add new links found
         	linkMan.addLinks(Parser.getLinksFromFile(responsePair.getFile(), hostName));
 
 		} catch (IOException e) {
