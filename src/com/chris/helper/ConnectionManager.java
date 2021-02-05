@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.Socket;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -15,6 +16,8 @@ import java.nio.charset.StandardCharsets;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 /****************************************************************************
@@ -66,7 +69,7 @@ public class ConnectionManager {
      * @throws IOException 
      */
     public void getBasic() throws IOException {
-    	
+    	factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
     	while(linkMan.hasNew()) {
     		directory = linkMan.getNextPage();
     		connectSocket();
@@ -79,14 +82,29 @@ public class ConnectionManager {
      * @throws IOException 
      */
     public void getAdminToolPages() throws IOException {
-    	connectSocket();
+    	// setting up socket factory
+    	factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
+    	// getting the first login page with the post
+    	directory = linkMan.getNextPage();
+		connectSocket();
+		sendPost();
+
+		List<String> sites = new ArrayList<String>();
+		sites.add("https://www.siliconmtn.com/admintool");
+		sites.add("https://www.siliconmtn.com/sb/admintool?cPage=index&actionId=FLUSH_CACHE");
+		sites.add("https://www.siliconmtn.com/sb/admintool?cPage=index&actionId=SCHEDULE_JOB_INSTANCE&organizationId=BMG_SMARTTRAK");
+		sites.add("https://www.siliconmtn.com/sb/admintool?cPage=index&actionId=WEB_SOCKET&organizationId=BMG_SMARTTRAK");
+		sites.add("https://www.siliconmtn.com/sb/admintool?cPage=index&actionId=ERROR_LOG&organizationId=BMG_SMARTTRAK");
+		linkMan.addLinks(sites);
+		connectSocket();
+		sendPost();
+
     	while(linkMan.hasNew()) {
     		directory = linkMan.getNextPage();
+    		System.out.println("next  = " + directory);
+    		connectSocket();
         	sendPost();
     	}
-    	//connectSocket();
-    	//sendPost();
-    	//socketReader.close();
     }
 
     /**
@@ -94,10 +112,15 @@ public class ConnectionManager {
      * @throws IOException 
      * @throws UnknownHostException 
      */
-    private void connectSocket() throws UnknownHostException, IOException {
-        factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
-        socket = (SSLSocket) factory.createSocket(hostName, 443);
-        socket.startHandshake();      
+    private void connectSocket() {
+        try {
+			socket = (SSLSocket) factory.createSocket(hostName, 443);
+			socket.startHandshake(); 
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+             
     }
 
     /**
@@ -114,6 +137,7 @@ public class ConnectionManager {
             socketWriter.println("GET " + directory + " HTTP/1.1");
             socketWriter.println("Host: " + hostName);
             socketWriter.println("User-Agent: Mozilla/4.0 (compatible; MSIE5.01; Windows NT");
+            
             socketWriter.println("Accept-Language: en-us");
             socketWriter.println("Connection: Keep-Alive");
             // adding carriage return
@@ -147,58 +171,60 @@ public class ConnectionManager {
                 new BufferedWriter(
                 new OutputStreamWriter(
                 socket.getOutputStream())))){
+    		//System.out.println("username = " + PROPERTIES.getProperty("usernamme"));
+    		//System.out.println("pass = " + PROPERTIES.getProperty("password"));
     		
     		//writing params for login
-			String params = "?requestType=reqBuild&pmid=ADMIN_LOGIN";
+			String params = "requestType=reqBuild&pmid=ADMIN_LOGIN";
 			params += "&emailAddress=" + PROPERTIES.getProperty("usernamme");
-			params += "&password=" + PROPERTIES.getProperty("password") + "&l=";
-			boolean response = false;
-			while(response) {
-				
+			params += "&password=" + PROPERTIES.getProperty("password") +"&l=";
+
 	    		if (cookie != null) {
-	    			System.out.println("++++++++++if+++++");
-	    			socketWriter.println("Post " + directory + " HTTP/1.1");
-	    	        socketWriter.println("Host: " + hostName);
-	    	        socketWriter.println("Cookie: JSESSIONID=" + cookie+";");
-	    	        socketWriter.println("content-type: application/x-www-form-urlencoded");
-	    	        socketWriter.println("User-Agent: Mozilla/4.0 (compatible; MSIE5.01; Windows NT");
-	    	        socketWriter.println("Accept-Language: en-us");
-	    	        socketWriter.println("Connection: Keep-Alive");
-	    	            
-	    	        // adding carriage return
-	    	        socketWriter.println();
-	    	        // send request
-	    	        socketWriter.flush();
-	    			}
-	    		else {
-	    			System.out.println("++++++++++else+++++");
-	        		socketWriter.println("POST " + directory + " HTTP/1.1");
-	        	    socketWriter.println("Host: " + hostName);
-	        	    socketWriter.println("content-type: application/x-www-form-urlencoded");
-	        	    socketWriter.println("user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36");
-	        	    socketWriter.println("Connection: Keep-Alive");
-	        	    socketWriter.println("content-type: application/x-www-form-urlencoded");
-	        	    socketWriter.println("Content-Length: " + params.length());
-	        	    socketWriter.println();
-	        	    socketWriter.println(params);
-	        	    socketWriter.println();
-	        	    // send request to page
-	        	    socketWriter.flush();  
-	    		}
+	    			System.out.println("");
+	    			System.out.println("++++++++++if+++++" + cookie  + directory);
+	    			System.out.println("");
+	    			socketWriter.print("GET " + directory + " HTTP/1.1\r\n");
+	    			socketWriter.print("Host: " + hostName + "\r\n");
+	    			socketWriter.print("Cookie: JSESSIONID=" + cookie + "\r\n");
+	    			socketWriter.print("User-Agent: bgold/1.2\r\n");
+	    			socketWriter.print("\r\n");
+	    			socketWriter.flush();
 	                socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	                // get response response header and body
 	            	responsePair = getResponse();
 	            	System.out.println("response -  " + responsePair.getResponse());
+	            	socketReader.close();
+	            	//socket.close();
 	            	
-	            	if(!responsePair.getResponse().contains("200")) response = true;
-	            	else response = false;
+
+	    		}
+	    		
+	    		else {
+	    			System.out.println("");
+	    			System.out.println("++++++++++else+++++"+ params.length() +hostName+ directory);
+	    			System.out.println("");
+	    			socketWriter.print("POST " + directory + " HTTP/1.1\r\n");
+	    			socketWriter.print("Host: " + hostName + "\r\n");
+	    			socketWriter.print("Content-Type: application/x-www-form-urlencoded\r\n");
+	    			socketWriter.print("Content-Length: "+params.length()+"\r\n");
+	    			socketWriter.print("User-Agent: bgold/1.2\r\n");
+	    			socketWriter.print("\r\n");
+	    	        //auth form values
+	    			socketWriter.print(params + "\r\n");
+	    			socketWriter.print("\r\n");
+	    			socketWriter.flush();
+	
+	                socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+	                // get response response header and body
+	            	responsePair = getResponse();
+	            	System.out.println("response -  " + responsePair.getResponse());
+	            	socketReader.close();
+	            	//socket.close();
 	            	
-	            	String cookieCheck = Parser.getCookieFromResponse(responsePair.getResponse());
-	            	if(cookieCheck != "") cookie = URLEncoder.encode(cookieCheck, StandardCharsets.UTF_8.toString());;
-				
-			}
+	            	cookie = Parser.getCookieFromResponse(responsePair.getResponse());
 
 
+	    		}
 
  
 		} catch (IOException e) {
@@ -212,28 +238,41 @@ public class ConnectionManager {
      * Getting response from socket.
      */
     private Pair getResponse() {
+    	System.out.println("gettign ");
     	// Making a pair from the string response and File to parse later
     	Pair responsePair = new Pair();
     	String response = "";
     	String line = "";
+    	
+    	
     	file = new File(FILE_DIR + makeFileName());
     	
     	try (BufferedWriter out = new BufferedWriter(new FileWriter(file))){
+    		
+    		
+    		System.out.println("gettign ");
     		// Using this boolean to split response and html.
 			boolean isResponse = true;
+			boolean redirect  = false;
 			while ((line = socketReader.readLine()) != null) {
+				if (line.toString().contains("HTTP/1.1 302")) redirect = true;
+				//System.out.println("line = " + line);
 				if (isResponse == true) response += line.toString();
 				// Response finished starting to read html
 				if (line.toString().contains("<!DOCTYPE html>")) isResponse = false;
 				// writing page to file
+				if(redirect && line.contains("Location: /admintool")) break;
 				if(!isResponse) out.write(line);
 				//breaking here because my reader wasn't closing
 				if (line.toString().contains("</html>")) break;
 			}
+			socketReader.close();
+			System.out.println("stuffff");
 			responsePair = new Pair(response, file);	
 		} catch (Exception e) {
 			System.out.println("Could not read response Exception  e - " + e);
 		}
+    	
     	return responsePair;
     }
     
