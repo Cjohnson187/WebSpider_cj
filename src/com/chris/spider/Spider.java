@@ -60,10 +60,10 @@ public class Spider {
 	 */
 	public static void main(String... args) throws IOException {
 		// Crawl the easy pages.
-		//LinkManager linkManager = new LinkManager("https://www.siliconmtn.com/");
-		//urlCrawl(linkManager);
+		LinkManager linkManager = new LinkManager("https://www.siliconmtn.com/");
+		urlCrawl(linkManager);
 		
-		// admintool crawl
+		// Crawl admintool pages the need cookie/login
 		LinkManager adminLinkManager = new LinkManager("https://www.siliconmtn.com/sb/admintool");
 		adminCrawl(adminLinkManager);
 	}
