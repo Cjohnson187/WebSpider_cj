@@ -25,7 +25,7 @@ public class LinkManager {
 
 	private static Set<String> visited;
 	private static Queue<String> priority;
-	private static String currentPage;
+	private static String host;
 
 	/**
 	 * basic constructor
@@ -41,46 +41,54 @@ public class LinkManager {
 	 * @param site
 	 */
 	public LinkManager(String site) {
+		setHostName(site);
 		// initialize set for sites that will be checked
 		visited  = new HashSet<>();
-
 		// initialize q and add starting site
 		priority = new PriorityQueue<String>();
-		priority.add(site);
 	}	
+	
+	/**
+	 * Setting host name and adding directory to priorityQ if there is one
+	 * @param url
+	 */
+    public void setHostName(String url) {
+    	//removing protocol
+    	String dir =  "";
+		url = url.replace("http://", "");
+		url = url.replace("https://", "");
+		if(url.contains("/")) {
+			dir  = url.substring(url.indexOf("/"));
+			url = url.substring(0, url.indexOf("/"));
+			priority.add(dir);
+		}
+		host = url;
+	}
 	
 	/**
 	 * Add a list of links to q if not in set that stores visited sites
 	 * @param link
 	 */
-	public void addLink(List<String> links) {
-		for (String link: links) {
-			// add link to q if not in set that indicates sites visited
-			if(!visited.contains(link) && !priority.contains(link)) {
-				priority.add(link);
+	public void addLinks(List<String> dirs) {
+		try {
+			for (String dir: dirs) {
+				// add link to q if not in set that indicates sites visited
+				if(!visited.contains(host+dir) && !priority.contains(dir)) {
+					priority.add(dir);
+				}
 			}
 		}
-	}
-
-	/**
-	 * Add to q if not in set that stores visited sites
-	 * @param link
-	 */
-	public void addLink(List<String> links, String baseUrl) {
-		for (String link: links) {
-			// add link to q if not in set that indicates sites visited
-			if(!visited.contains(link) && !priority.contains(link)) {
-				priority.add(link);
-			}
+		catch (NullPointerException e) {
+			System.out.println("No links found sssooooorrrrryyyyyy.....");
 		}
 	}
 	
 	/**
-	 * Get the current page
+	 * getting host name
 	 * @return
 	 */
-	public String getURI() {
-		return currentPage;
+	public String getHost() {
+		return host;
 	}
 
 	/**
@@ -88,14 +96,14 @@ public class LinkManager {
 	 */
 	public String getNextPage() {
 		try {
-			currentPage = priority.poll();
+			String currentPage = host + priority.poll();
 			visited.add(currentPage);
 			return currentPage;
 		}
 		catch(Exception e){
 			System.out.println("Error getting next page, " + e + "occurred");
 		}
-		// if page has not been traversed 	
+		// Shouldn't return if check hasNew()
 		return null;
 	}
 

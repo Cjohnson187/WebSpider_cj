@@ -27,29 +27,24 @@ import org.jsoup.select.Elements;
 
 public class Parser {
 	
-	private String hostName;
-	private File file;
-	private List<String> linksToReturn;
-	
-	
 	/**
-	 * Creating a parser and initializing a file and host 
-	 * name that was passed
+	 * Empty constructor.
 	 * @param file
 	 * @param pageUri
 	 */
-	public Parser(File file, String hostName) {
-		linksToReturn = new ArrayList<String>();
-		this.file = file;
-		this.hostName = hostName;
+	public Parser() {
+
 	}
 	
 	/**
-	 * Return links found by the parser.
+	 * Method to parse a response and get JsessionID
+	 * @param response
 	 * @return
 	 */
-	public List<String> getLinksFound(){
-		return linksToReturn;
+	public static String parseResponse(String response) {
+		// making document from response for Jsoup to parse
+		Document doc = Jsoup.parse(response);
+		return doc.select("JSESSIONID").toString();
 	}
 	
 	/**
@@ -57,64 +52,53 @@ public class Parser {
 	 * @param socketStream
 	 * @throws IOException 
 	 */
-	public void parsePage() throws IOException {
+	public static List<String> parsePage(File file, String hostName) throws IOException {
+		List<String> linksToReturn = new ArrayList<>();
 		Document doc = Jsoup.parse(file, "UTF-8", hostName);
 		Elements links = doc.select("a[href]");
-		String linkFound = "";
+		String dirFound = "";
 		
 		for(Element link: links) {
-			linkFound = extractLink(link.toString());
+			dirFound = extractLink(link.toString());
+			
 			//TODO delete println
-			System.out.println("link found" + linkFound);
-			if(linkFound.length() > 1 && linkFound.charAt(0) == '/') {
-				linksToReturn.add(getHostName() + linkFound);
+			System.out.println("link found" + dirFound);
+			
+			if(dirFound.length() > 1 && dirFound.charAt(0) == '/') {
+				linksToReturn.add(dirFound);
 			}
 		}
-		//TODO do something with jsession id
-		Elements response = doc.select("JSESSIONID");
-		//TODO delete println
-		System.out.println("jsessionID" + response.toString());
+		return linksToReturn;
 	}
 	
 	/**
-	 * Get substring that is 
+	 * Get substring that is the link
 	 * @param line
 	 * @return
 	 */
-	public String extractLink(String line) {
-		StringBuilder linkFound = new StringBuilder();
-		boolean link = false;
-		for(int i=0; i< line.length(); i++) {
-			if(line.charAt(i) == '"' && link == false) {
-				link = true;
-				continue;
-			} else if(line.charAt(i) == '"' && link == true) {
-				break;
-			}
-			if (link == true) {
-				linkFound.append(line.charAt(i));
-			}
-		}
-		return linkFound.toString();
+	private static String extractLink(String line) {
+		// linkFound = new StringBuilder();
+		//boolean link = false;
+		line = line.substring(line.indexOf('"'));
+		line = line.substring(0 , line.indexOf('"'));
+//		for(int i=0; i< line.length(); i++) {
+//			if(line.charAt(i) == '"' && link == false) {
+//				link = true;
+//				continue;
+//			} else if(line.charAt(i) == '"' && link == true) {
+//				break;
+//			}
+//			if (link == true) {
+//				linkFound.append(line.charAt(i));
+//			}
+//		}
+		return line;
 	}
 	
 	/**
 	 * Getting the host name of the current page.
 	 * @return
 	 */
-    private String getHostName() {
-		StringBuilder host = new StringBuilder();
-		try {
-			for (int i=0; i< hostName.length(); i++) {
-				if (hostName.charAt(i) != '/') {
-					host.append(hostName.charAt(i));
-				} else break;
-			}
-		} catch(NullPointerException e) {
-			System.out.println("Error getting host name. Nullpointer Exception -" + e);
-		}
-		return host.toString();
-	}
 
 
 

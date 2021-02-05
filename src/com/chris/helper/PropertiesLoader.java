@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class PropertiesLoader {
-	private static Properties prop;
 	private static final String PROPERTIES_LOCATION="config/config.properties";
 	public PropertiesLoader() { }
 	
