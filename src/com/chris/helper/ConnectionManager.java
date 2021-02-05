@@ -46,8 +46,9 @@ public class ConnectionManager {
     private static String directory;
     
     private LinkManager linkMan;
-    private static SSLSocket socket;
-    private static BufferedReader socketReader;
+    private SSLSocket socket;
+    private SSLSocketFactory factory;
+    private BufferedReader socketReader;
     
     /**
      * Building ConnectionManager with linkManager to manage pages while socket is connected
@@ -78,9 +79,9 @@ public class ConnectionManager {
      * @throws IOException 
      */
     public void getAdminToolPages() throws IOException {
+    	connectSocket();
     	while(linkMan.hasNew()) {
     		directory = linkMan.getNextPage();
-    		connectSocket();
         	sendPost();
     	}
     	//connectSocket();
@@ -90,19 +91,13 @@ public class ConnectionManager {
 
     /**
      * Make connection to page and build writer / reader
+     * @throws IOException 
+     * @throws UnknownHostException 
      */
-    private void connectSocket() {
-        SSLSocketFactory factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
-        try {
-        	socket = (SSLSocket) factory.createSocket(hostName, 443);
-        	socket.startHandshake();
-		} catch (UnknownHostException e) {
-			System.out.println("unknown host exception - " + e);
-			e.printStackTrace();
-		} catch (IOException e) {
-			System.out.println("IO exception - " + e);
-			e.printStackTrace();
-		}       
+    private void connectSocket() throws UnknownHostException, IOException {
+        factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
+        socket = (SSLSocket) factory.createSocket(hostName, 443);
+        socket.startHandshake();      
     }
 
     /**
@@ -157,41 +152,52 @@ public class ConnectionManager {
 			String params = "?requestType=reqBuild&pmid=ADMIN_LOGIN";
 			params += "&emailAddress=" + PROPERTIES.getProperty("usernamme");
 			params += "&password=" + PROPERTIES.getProperty("password") + "&l=";
+			boolean response = false;
+			while(response) {
+				
+	    		if (cookie != null) {
+	    			System.out.println("++++++++++if+++++");
+	    			socketWriter.println("Post " + directory + " HTTP/1.1");
+	    	        socketWriter.println("Host: " + hostName);
+	    	        socketWriter.println("Cookie: JSESSIONID=" + cookie+";");
+	    	        socketWriter.println("content-type: application/x-www-form-urlencoded");
+	    	        socketWriter.println("User-Agent: Mozilla/4.0 (compatible; MSIE5.01; Windows NT");
+	    	        socketWriter.println("Accept-Language: en-us");
+	    	        socketWriter.println("Connection: Keep-Alive");
+	    	            
+	    	        // adding carriage return
+	    	        socketWriter.println();
+	    	        // send request
+	    	        socketWriter.flush();
+	    			}
+	    		else {
+	    			System.out.println("++++++++++else+++++");
+	        		socketWriter.println("POST " + directory + " HTTP/1.1");
+	        	    socketWriter.println("Host: " + hostName);
+	        	    socketWriter.println("content-type: application/x-www-form-urlencoded");
+	        	    socketWriter.println("user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36");
+	        	    socketWriter.println("Connection: Keep-Alive");
+	        	    socketWriter.println("content-type: application/x-www-form-urlencoded");
+	        	    socketWriter.println("Content-Length: " + params.length());
+	        	    socketWriter.println();
+	        	    socketWriter.println(params);
+	        	    socketWriter.println();
+	        	    // send request to page
+	        	    socketWriter.flush();  
+	    		}
+	                socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+	                // get response response header and body
+	            	responsePair = getResponse();
+	            	System.out.println("response -  " + responsePair.getResponse());
+	            	
+	            	if(!responsePair.getResponse().contains("200")) response = true;
+	            	else response = false;
+	            	
+	            	String cookieCheck = Parser.getCookieFromResponse(responsePair.getResponse());
+	            	if(cookieCheck != "") cookie = URLEncoder.encode(cookieCheck, StandardCharsets.UTF_8.toString());;
+				
+			}
 
-    		if (cookie != null) {
-    			socketWriter.println("Post " + directory + " HTTP/1.1");
-    	        socketWriter.println("Host: " + hostName);
-    	        socketWriter.println("Cookie: JSESSIONID=" + cookie+";");
-    	        socketWriter.println("Content-Encoding: deflate, gzip");
-    	        socketWriter.println("User-Agent: Mozilla/4.0 (compatible; MSIE5.01; Windows NT");
-    	        socketWriter.println("Accept-Language: en-us");
-    	        socketWriter.println("Connection: Keep-Alive");
-    	            
-    	        // adding carriage return
-    	        socketWriter.println();
-    	        // send request
-    	        socketWriter.flush();
-    			}
-    		else {
-        		socketWriter.println("POST " + directory + " HTTP/1.1");
-        	    socketWriter.println("Host: " + hostName);
-        	    socketWriter.println("content-type: application/x-www-form-urlencoded");
-        	    socketWriter.println("user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36");
-        	    socketWriter.println("Connection: Keep-Alive");
-        	    socketWriter.println("Content-Encoding: deflate, gzip");
-        	    socketWriter.println("Content-Length: " + params.length());
-        	    socketWriter.println();
-        	    socketWriter.println(params);
-        	    socketWriter.println();
-        	    // send request to page
-        	    socketWriter.flush();  
-    		}
-                socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                // get response response header and body
-            	responsePair = getResponse();
-            	System.out.println("response -  " + responsePair.getResponse());
-            	String cookieCheck = Parser.getCookieFromResponse(responsePair.getResponse());
-            	if(cookieCheck != "") cookie = URLEncoder.encode(cookieCheck, StandardCharsets.UTF_8.toString());;
 
 
  
