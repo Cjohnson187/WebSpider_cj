@@ -62,7 +62,7 @@ public class Spider {
 		// Crawl the easy pages.
 		LinkManager linkManager = new LinkManager("https://www.siliconmtn.com/");
 		urlCrawl(linkManager);
-		
+
 		// Crawl admintool pages the need cookie/login
 		LinkManager adminLinkManager = new LinkManager("https://www.siliconmtn.com/sb/admintool");
 		adminCrawl(adminLinkManager);

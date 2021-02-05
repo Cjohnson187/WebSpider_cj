@@ -58,6 +58,7 @@ public class Parser {
 	 * @return
 	 * @throws IOException
 	 */
+
 	public static List<String> getLinksFromFile(File file, String hostName) throws IOException {
 		List<String> linksToReturn = new ArrayList<>();
 		Document doc = Jsoup.parse(file, "UTF-8", hostName);
