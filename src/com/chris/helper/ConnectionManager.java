@@ -43,7 +43,7 @@ public class ConnectionManager {
     private String hostName;
     private File file;
 
-    private static String directory;
+    private static String path;
     
     private LinkManager linkMan;
     private SSLSocket socket;
@@ -57,7 +57,8 @@ public class ConnectionManager {
     public ConnectionManager(LinkManager linkMan) {
     	this.linkMan = linkMan;
     	this.hostName = linkMan.getHost();
-    	this.directory = "";
+    	this.path = "";
+    	factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
     }
     
     /**
@@ -65,9 +66,9 @@ public class ConnectionManager {
      * @throws IOException 
      */
     public void getBasic() throws IOException {
-    	factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
+    	
     	while(linkMan.hasNew()) {
-    		directory = linkMan.getNextPage();
+    		path = linkMan.getNextPage();
     		connectSocket();
         	sendGet();
     	}
@@ -79,28 +80,30 @@ public class ConnectionManager {
      * @throws IOException
      */
     public void getAdminToolPages() throws IOException {
-    	// setting up socket factory
-    	factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
     	// getting the first login page with the post to get the cookie
-    	directory = linkMan.getNextPage();
+    	path = linkMan.getNextPage();
 		connectSocket();
 		sendPost();
+		
 		// list of sites to add - This should be done on the spider
 		// but the priority Q reorders the sites by smallest to largest
 		// which is a problem because im  not dynamically handling responses yet
 		List<String> sites = new ArrayList<String>();
 		sites.add("https://www.siliconmtn.com/admintool");
-		sites.add("https://www.siliconmtn.com/sb/admintool?cPage=index&actionId=FLUSH_CACHE");
-		sites.add("https://www.siliconmtn.com/sb/admintool?cPage=index&actionId=SCHEDULE_JOB_INSTANCE&organizationId=BMG_SMARTTRAK");
-		sites.add("https://www.siliconmtn.com/sb/admintool?cPage=index&actionId=WEB_SOCKET&organizationId=BMG_SMARTTRAK");
-		sites.add("https://www.siliconmtn.com/sb/admintool?cPage=index&actionId=ERROR_LOG&organizationId=BMG_SMARTTRAK");
+		sites.add("https://www.siliconmtn.com/admintool?cPage=index&actionId=FLUSH_CACHE");
+		sites.add("https://www.siliconmtn.com/admintool?cPage=index&actionId=SCHEDULE_JOB_INSTANCE&organizationId=BMG_SMARTTRAK");
+		sites.add("https://www.siliconmtn.com/admintool?cPage=index&actionId=WEB_SOCKET&organizationId=BMG_SMARTTRAK");
+		sites.add("https://www.siliconmtn.com/admintool?cPage=index&actionId=ERROR_LOG&organizationId=BMG_SMARTTRAK");
 		linkMan.addLinks(sites);
-		connectSocket();
-		sendPost();
+
+
 		
-		// Start crwaling the remaining links now that there is a cookie.
+		// Start crawling the remaining links now that there is a cookie.
     	while(linkMan.hasNew()) {
-    		directory = linkMan.getNextPage();
+    		System.out.println("old path- " + path);
+    		path = linkMan.getNextPage();
+    		
+    		System.out.println("new path- " + path);
     		connectSocket();
         	sendPost();
     	}
@@ -112,7 +115,7 @@ public class ConnectionManager {
     private void connectSocket() {
         try {
 			socket = (SSLSocket) factory.createSocket(hostName, 443);
-			socket.startHandshake(); 
+			//socket.startHandshake(); 
 		} catch (IOException e) {
 			System.out.println("could not connect to socket, exception - " + e);
 			e.printStackTrace();
@@ -130,7 +133,7 @@ public class ConnectionManager {
                 new OutputStreamWriter(
                 socket.getOutputStream())))){
     		
-            socketWriter.println("GET " + directory + " HTTP/1.1");
+            socketWriter.println("GET " + path + " HTTP/1.1");
             socketWriter.println("Host: " + hostName);
             socketWriter.println("User-Agent: Mozilla/4.0 (compatible; MSIE5.01; Windows NT");
             socketWriter.println("Accept-Language: en-us");
@@ -172,7 +175,7 @@ public class ConnectionManager {
 			params += "&password=" + PROPERTIES.getProperty("password") +"&l=";
 
 	    		if (cookie != null) {
-	    			socketWriter.println("GET " + directory + " HTTP/1.1");
+	    			socketWriter.println("GET " + path + " HTTP/1.1");
 	    			socketWriter.println("Host: " + hostName);
 	    			socketWriter.println("Cookie: JSESSIONID=" + cookie);
 	    			socketWriter.println("User-Agent: bgold/1.2");
@@ -183,18 +186,19 @@ public class ConnectionManager {
 	                // get response response header and body
 	            	responsePair = getResponse();
 	            	
-	            	//TODO left this in just to make sure logins work
-	            	System.out.println("response -  " + responsePair.getResponse());
-	            	
 	            	socketReader.close();
 	    		}
 	    		// Post for first login but i need a check for redirects instead
 	    		else {
-	    			socketWriter.println("POST " + directory + " HTTP/1.1");
+	    			
+	    			socketWriter.println("POST " + path + " HTTP/1.1");
 	    			socketWriter.println("Host: " + hostName);
+	    			socketWriter.println("Accept-Encoding: gzip, deflate, br");
+	    			socketWriter.println("Accept-Language: en-US,en;q=0.9");
+	    			socketWriter.println("Cache-Control: no-cache");
 	    			socketWriter.println("Content-Type: application/x-www-form-urlencoded");
+	    			socketWriter.println("User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36");
 	    			socketWriter.println("Content-Length: " + params.length());
-	    			socketWriter.println("User-Agent: bgold/1.2");
 	    			socketWriter.println();
 	    	        // login properties
 	    			socketWriter.println(params);
@@ -205,7 +209,7 @@ public class ConnectionManager {
 	                socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	                // get response response header and body
 	            	responsePair = getResponse();
-	            	System.out.println("response -  " + responsePair.getResponse());
+	            	//System.out.println("response -  " + responsePair.getResponse());
 	            	cookie = Parser.getCookieFromResponse(responsePair.getResponse());
 	            	
 	            	socketReader.close();
@@ -235,10 +239,10 @@ public class ConnectionManager {
 			while ((line = socketReader.readLine()) != null) {
 				// need a better check to know if redirect
 				if (line.toString().contains("HTTP/1.1 302")) redirect = true;
-				// save response to string
-				if (isResponse) response += line;
 				// Response finished starting to read html
 				if (line.toString().contains("<!DOCTYPE html>")) isResponse = false;
+				// save response to string
+				if (isResponse) response += line;
 				// writing page to file
 				if(redirect && line.contains("Location: /admintool")) break;
 				if(!isResponse) out.write(line);
@@ -260,7 +264,7 @@ public class ConnectionManager {
 	 * @return
 	 */
 	private static String makeFileName() {
-		return directory.replaceAll("/", "_").replaceAll(":", "-");
+		return path.replaceAll("/", "_").replaceAll(":", "-");
 	} 
 }
 
