@@ -1,9 +1,9 @@
 package com.chris.helper;
 
-import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 
 /****************************************************************************
@@ -23,7 +23,7 @@ import java.util.List;
 public class LinkManager {
 
 	private static Set<String> visited;
-	private static Queue<String> priority;
+	private static LinkedList<String> priority;
 	private String host;
 
 	/**
@@ -32,7 +32,8 @@ public class LinkManager {
 	public LinkManager() {
 		// initialize set and q
 		visited  = new HashSet<>();
-		priority = new PriorityQueue<String>();
+		priority = new LinkedList<String>();
+		host = "";
 	}
 
 	/**
@@ -43,41 +44,49 @@ public class LinkManager {
 		// initialize set for sites that will be checked
 		visited  = new HashSet<>();
 		// initialize q and add starting site
-		priority = new PriorityQueue<String>();
+		priority = new LinkedList<String>();
 		setHostName(site);
 	}	
 	
 	/**
-	 * Setting host name and adding directory to priorityQ if there is one
+	 * Not being used yet but will be for dynamic redirects
+	 * @param redirect
+	 */
+	public void addFront(String redirect) {
+		priority.addFirst(redirect);
+	}
+	
+	/**
+	 * Setting host name and adding directory to the Q if there is one
 	 * @param url
 	 */
     public void setHostName(String url) {
     	//removing protocol
-    	String dir =  "";
+    	String path =  "";
 		url = url.replace("http://", "");
 		url = url.replace("https://", "");
 		if(url.contains("/")) {
-			dir  = url.substring(url.indexOf("/"));
-			priority.add(dir);
+			path  = url.substring(url.indexOf("/"));
+			priority.add(path);
 		}
 		host = url.substring(0, url.indexOf("/"));	
 	}
 	
 	/**
-	 * Adding directories pulled from urls if they have not been added/visited
+	 * Adding paths pulled from urls if they have not been added/visited
 	 * @param urls
 	 */
 	public void addLinks(List<String> urls) {
 		try {
-			String index = "";
+			String path = "";
 			for (String url: urls) {
 				url = url.replace("http://", "");
 				url = url.replace("https://", "");
 				if(url.contains("/")) {
-					index = url.substring(url.indexOf("/"));
+					path = url.substring(url.indexOf("/"));
 					// add link to q if not in set that indicates sites visited
-					if(!visited.contains(index) && !priority.contains(index)) {
-						priority.add(index);
+					if(!visited.contains(path) && !priority.contains(path)) {
+						priority.add(path);
 					}
 				}	
 			}
@@ -88,7 +97,7 @@ public class LinkManager {
 	}
 	
 	/**
-	 * getting host name
+	 * Getting host name
 	 * @return
 	 */
 	public String getHost() {
