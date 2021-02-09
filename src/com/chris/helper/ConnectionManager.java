@@ -41,10 +41,9 @@ public class ConnectionManager {
 	
     private String cookie;
     private String hostName;
+    private String path;
     private File file;
 
-    private String path;
-    
     private LinkManager linkMan;
     private SSLSocket socket;
     private SSLSocketFactory factory;
@@ -65,7 +64,7 @@ public class ConnectionManager {
      * @throws IOException 
      */
     public void getBasic() throws IOException {
-    	factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
+    	
     	while(linkMan.hasNew()) {
     		path = linkMan.getNextPage();
     		connectSocket();
@@ -83,6 +82,7 @@ public class ConnectionManager {
 		// Start crawling the admintool pages
     	while(linkMan.hasNew()) {
     		path = linkMan.getNextPage();
+
     		connectSocket();
         	sendPost();
     	}
@@ -94,7 +94,7 @@ public class ConnectionManager {
     private void connectSocket() {
         try {
 			socket = (SSLSocket) factory.createSocket(hostName, 443);
-			socket.startHandshake(); 
+			//socket.startHandshake(); 
 		} catch (IOException e) {
 			System.out.println("could not connect to socket, exception - " + e);
 			e.printStackTrace();
@@ -156,43 +156,46 @@ public class ConnectionManager {
 	    			socketWriter.println("GET " + path + " HTTP/1.1");
 	    			socketWriter.println("Host: " + hostName);
 	    			socketWriter.println("Cookie: JSESSIONID=" + cookie);
-	                socketWriter.println("Connection: Keep-Alive");
+	          socketWriter.println("Connection: Keep-Alive");
 	    			socketWriter.println("User-Agent: Mozilla/5.0 (X11; Linux x86_64)"
 	    					+ " AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36");
 	    			socketWriter.println();
 	    			socketWriter.flush();
 	    			
-	                // get response response header and body
-	            	responsePair = getResponse();
+	          // get response response header and body
+	          responsePair = getResponse();
 
-	            	//TODO left this in just to make sure logins work
-	            	System.out.println("response -  " + responsePair.getResponse());
 
+	          //TODO left this in just to make sure logins work
+	          System.out.println("response -  " + responsePair.getResponse());
 	    		}
 	    		
 	    		// Post for first login but i need a check for redirects instead
 	    		else {
 	    			socketWriter.println("POST " + path + " HTTP/1.1");
 	    			socketWriter.println("Host: " + hostName);
+	    			socketWriter.println("Accept-Encoding: gzip, deflate, br");
+	    			socketWriter.println("Accept-Language: en-US,en;q=0.9");
+	    			socketWriter.println("Cache-Control: no-cache");
 	    			socketWriter.println("Content-Type: application/x-www-form-urlencoded");
-	                socketWriter.println("Connection: Keep-Alive");
+	          socketWriter.println("Connection: Keep-Alive");
 	    			socketWriter.println("Content-Length: " + params.length());
 	    			socketWriter.println("User-Agent: Mozilla/5.0 (X11; Linux x86_64) "
 	    					+ "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36");
 	    			socketWriter.println();
-	    	        // login properties
+	    	    // login properties
 	    			socketWriter.println(params);
 	    			socketWriter.println();
 	    			socketWriter.println();
 	    			socketWriter.flush();
 	    			
 	    			// get response response header and body
-	                //socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-	            	responsePair = getResponse();
-	            	cookie = Parser.getCookieFromResponse(responsePair.getResponse());
+	          //socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+	          responsePair = getResponse();
+	          cookie = Parser.getCookieFromResponse(responsePair.getResponse());
 	            	
-	            	//TODO delete println
-	            	System.out.println("response -  " + responsePair.getResponse());
+	          //TODO delete println
+	          System.out.println("response -  " + responsePair.getResponse());
 	    		}
 		} catch (IOException e) {
 			System.out.println("IO exception - " + e);
@@ -251,6 +254,7 @@ public class ConnectionManager {
 	 * @return
 	 */
 	private String makeFileName() {
+
 		return path.replaceAll("/", "_").replaceAll(":", "-");
 	} 
 }
